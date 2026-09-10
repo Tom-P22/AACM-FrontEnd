@@ -155,12 +155,6 @@ function renderHomeFeatured() {
     container.innerHTML = htmlAcumulado;
 }
 
-// Añadir al carrito (funcion futura)
-function addToCart(productId) {
-    alert("Reserva añadida con éxito");
-}
-
-
 // --- FUNCIONES DE VALIDACIÓN ---
 
 // Validación de RUT
@@ -339,3 +333,32 @@ function initRegionDropdowns() {
         }
     });
 }
+
+// --- INICIALIZACION Y EVENTOS GLOBALES ---
+
+// Añadir al carrito (funcion futura)
+function addToCart(productId) {
+    alert("Reserva añadida con éxito");
+}
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    initRegionDropdowns();
+    setupForms();
+    
+    // Auto-renderizar segun la página actual
+    if (document.getElementById('catalog-products-list') !== null) {
+        renderProductsCatalog();
+        
+        // Agregar evento al filtro
+        const filterCategory = document.getElementById('filter-category');
+        if(filterCategory !== null) {
+            filterCategory.addEventListener('change', renderProductsCatalog);
+        }
+    }
+
+    if (document.getElementById('home-featured-products') !== null) {
+        renderHomeFeatured();
+    }
+});
+
