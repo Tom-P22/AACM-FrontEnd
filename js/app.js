@@ -57,3 +57,100 @@ const REGIONES_COMUNAS = {
     "Región del Biobío": ["Concepción", "Talcahuano", "Los Ángeles"]
 };
 
+// --- RENDERIZADO Y LÓGICA DE PRODUCTOS ---
+
+function getProducts() {
+    const stored = localStorage.getItem('productos_deportes');
+    if (stored === null) {
+        localStorage.setItem('productos_deportes', JSON.stringify(INITIAL_PRODUCTS));
+        return INITIAL_PRODUCTS;
+    }
+    return JSON.parse(stored);
+}
+
+function formatCLP(amount) {
+    return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(amount);
+}
+
+function renderProductsCatalog() {
+    const container = document.getElementById('catalog-products-list');
+    if (container === null) return;
+
+    let filterCategory = document.getElementById('filter-category');
+    let filterVal = "ALL";
+    if (filterCategory !== null) {
+        filterVal = filterCategory.value;
+    }
+
+    const products = getProducts();
+    let htmlAcumulado = "";
+
+    for (let i = 0; i < products.length; i++) {
+        let p = products[i];
+        
+        if (filterVal === "ALL" || p.categoria === filterVal) {
+            htmlAcumulado += `
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm border-0">
+                        <img src="../${p.imagen}" class="card-img-top" alt="${p.nombre}" style="height: 200px; object-fit: cover;">
+                        <div class="card-body d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="badge bg-primary-subtle text-primary fw-bold px-2 py-1">${p.categoria}</span>
+                                <span class="fw-bold text-success fs-5">${formatCLP(p.precio)}</span>
+                            </div>
+                            <h5 class="card-title fw-bold">${p.nombre}</h5>
+                            <p class="card-text text-muted small flex-grow-1">${p.descripcion}</p>
+                            <button onclick="addToCart(${p.id})" class="btn btn-primary w-100 mt-3 fw-bold">
+                                <i class="fa-solid fa-cart-plus me-1"></i> Reservar / Añadir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    if (htmlAcumulado === "") {
+        container.innerHTML = `<div class="col-12 text-center text-muted py-5"><p class="fs-5">No hay ítems disponibles en esta categoría.</p></div>`;
+    } else {
+        container.innerHTML = htmlAcumulado;
+    }
+}
+
+// Productos destacados
+function renderHomeFeatured() {
+    const container = document.getElementById('home-featured-products');
+    if (container === null) return;
+
+    const products = getProducts();
+    let htmlAcumulado = "";
+
+    let maximo = 3;
+    if (products.length < 3) {
+        maximo = products.length;
+    }
+
+    for (let i = 0; i < maximo; i++) {
+        let p = products[i];
+        htmlAcumulado += `
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <img src="${p.imagen}" class="card-img-top" alt="${p.nombre}" style="height: 200px; object-fit: cover;">
+                    <div class="card-body d-flex flex-column">
+                        <span class="badge bg-info-subtle text-info-emphasis align-self-start mb-2 fw-semibold">${p.categoria}</span>
+                        <h5 class="card-title fw-bold">${p.nombre}</h5>
+                        <p class="card-text text-muted small flex-grow-1">${p.descripcion}</p>
+                        <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                            <span class="fw-bold text-primary fs-5">${formatCLP(p.precio)}</span>
+                            <button onclick="addToCart(${p.id})" class="btn btn-outline-primary btn-sm fw-bold">
+                                <i class="fa-solid fa-calendar-check me-1"></i> Reservar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    container.innerHTML = htmlAcumulado;
+}
