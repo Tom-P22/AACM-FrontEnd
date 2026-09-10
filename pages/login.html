@@ -44,6 +44,39 @@
         </nav>
     </header>
 
+    <main class="flex-grow-1" id="app-viewport">
+        <section id="view-login" class="view-section">
+            <div class="container py-5">
+                <div class="card shadow-sm p-4 mx-auto" style="max-width: 450px;">
+                    <div class="text-center mb-3">
+                        <i class="fa-solid fa-user-circle display-4 text-primary"></i>
+                        <h2 class="h4 fw-bold mt-2">Iniciar Sesión</h2>
+                        <p class="text-muted small">Ingresa a tu cuenta institucional o vecinal</p>
+                    </div>
+
+                    <form id="form-login" novalidate>
+                        <div class="mb-3">
+                            <label for="login-correo" class="form-label fw-semibold">Correo Electrónico *</label>
+                            <input type="email" id="login-correo" class="form-control" placeholder="usuario@gmail.com">
+                            <div class="text-danger small mt-1" id="err-login-correo"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="login-password" class="form-label fw-semibold">Contraseña *</label>
+                            <input type="password" id="login-password" class="form-control" placeholder="••••••••">
+                            <div class="text-danger small mt-1" id="err-login-password"></div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 fw-bold">Ingresar</button>
+                    </form>
+                    <div class="text-center mt-3 small">
+                        ¿No tienes cuenta? <a href="../pages/registro.html" class="text-primary fw-bold">Regístrate aquí</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
     <footer class="bg-dark text-white mt-auto pt-5">
         <div class="container">
             <div class="row g-4 pb-4 border-bottom border-secondary">
