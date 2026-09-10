@@ -1,13 +1,25 @@
 /* ==========================================================================
    HOJA DE ESTILOS PERSONALIZADA (styles.css)
+   - ¿Para qué sirve?: Complementa y sobrescribe las reglas por defecto de 
+     Bootstrap 5 con estilos específicos de la marca (colores, imágenes, punteros).
    ========================================================================== */
 
-/* Regla general para el puntero */
+/* 
+  REGLA GENERAL PARA EL PUNTERO:
+  - Selector de clase: '.cursor-pointer'
+  - 'cursor: pointer;': Cambia el icono del ratón a una "mano con el dedo índice" 
+    cuando el usuario pasa el cursor sobre elementos cliqueables (como logos o botones div).
+*/
 .cursor-pointer {
     cursor: pointer;
 }
 
-/* Utilidad para tamaño de fuente pequeño */
+/* 
+  UTILIDAD PARA TAMAÑO DE FUENTE PEQUEÑO:
+  - Bootstrap 5 tiene clases desde fs-1 hasta fs-6. 
+  - Definimos 'fs-7' para textos extra pequeños como subtítulos o fechas en tablas.
+  - '0.8rem' equivale aproximadamente a 12.8 píxeles.
+*/
 .fs-7 {
     font-size: 0.8rem;
 }
@@ -16,23 +28,54 @@
    ESTILOS PARA EL HERO BANNER (PORTADA PRINCIPAL)
    ========================================================================== */
 
+/* 
+  SELECTOR '.hero-banner':
+  Contenedor visual de alto impacto que aparece en la parte superior del Home.
+*/
 .hero-banner {
+    /* 
+      'background-image: linear-gradient(...)':
+      Aplica una capa semitransparente oscura (rgba 0,0,0,0.6) sobre la imagen de fondo.
+      Esto garantiza que el texto blanco siempre sea legible sobre cualquier fotografía.
+    */
     background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), 
                       url('https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=1200&q=80');
+    
+    /* 'background-size: cover;': Escala la imagen para que cubra todo el contenedor sin deformarse */
     background-size: cover;
+    
+    /* 'background-position: center;': Centra la imagen focalmente */
     background-position: center;
+    
+    /* 'border-bottom': Añade una línea decorativa inferior con el color primario de la comuna */
     border-bottom: 4px solid #0d6efd;
 }
 
 /* ==========================================================================
-   TARJETAS Y IMÁGENES
+   TARJETAS Y MÁGENES
    ========================================================================== */
 
+/* 
+  SELECTOR '.card-img-top':
+  Controla el tamaño y proporción de las imágenes en las tarjetas de productos/canchas.
+*/
 .card-img-top {
+    /* 'height: 200px;': Fuerza a que todas las tarjetas tengan exactamente la misma altura de imagen */
     height: 200px;
+    
+    /* 
+      'object-fit: cover;': 
+      Propiedad clave de CSS3. Recorta y ajusta la imagen para que rellene el espacio
+      de 200px sin estirarse ni aplastarse.
+    */
     object-fit: cover;
 }
 
+/* 
+  EFECTOS HOVER (AL PASAR EL RATÓN):
+  - 'transition': Transición suave de 0.2 segundos para la propiedad 'transform'.
+  - ':hover': Aplica un leve efecto de elevación (elevación de -3px en el eje Y) al pasar el cursor.
+*/
 .card {
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
