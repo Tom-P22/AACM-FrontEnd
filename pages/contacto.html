@@ -48,6 +48,39 @@
         </nav>
     </header>
 
+    <main class="flex-grow-1" id="app-viewport">
+        <section id="view-contacto" class="view-section">
+            <div class="container py-5">
+                <div class="card shadow-sm p-4 mx-auto" style="max-width: 600px;">
+                    <h2 class="h4 fw-bold">Formulario de Contacto</h2>
+                    <p class="text-muted small">¿Tienes dudas sobre los recintos o las reservas? Escríbenos.</p>
+                    
+                    <form id="form-contacto" novalidate>
+                        <div class="mb-3">
+                            <label for="contact-nombre" class="form-label fw-semibold">Nombre Completo *</label>
+                            <input type="text" id="contact-nombre" class="form-control" placeholder="Ej: Juan Pérez">
+                            <div class="text-danger small mt-1" id="err-contact-nombre"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="contact-correo" class="form-label fw-semibold">Correo Electrónico *</label>
+                            <input type="email" id="contact-correo" class="form-control" placeholder="ejemplo@gmail.com">
+                            <div class="text-danger small mt-1" id="err-contact-correo"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="contact-comentario" class="form-label fw-semibold">Comentario / Consulta *</label>
+                            <textarea id="contact-comentario" class="form-control" rows="4" placeholder="Escribe tu mensaje..."></textarea>
+                            <div class="text-danger small mt-1" id="err-contact-comentario"></div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 fw-bold">Enviar Mensaje</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+    
     <footer class="bg-dark text-white mt-auto pt-5">
         <div class="container">
             <div class="row g-4 pb-4 border-bottom border-secondary">
