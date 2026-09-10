@@ -14,16 +14,24 @@
         <nav class="navbar navbar-expand-lg navbar-light container py-2">
             <a class="navbar-brand d-flex align-items-center gap-2" href="../index.html">
                 <i class="fa-solid fa-trophy fs-2 text-primary"></i>
-                <div><span class="fw-bold d-block lh-1 text-dark fs-5">Deportes San Miguel</span><small class="text-muted text-uppercase fs-7">Corporación Municipal</small></div>
+                <div>
+                    <span class="fw-bold d-block lh-1 text-dark fs-5">Deportes San Miguel</span>
+                    <small class="text-muted text-uppercase fs-7">Corporación Municipal</small>
+                </div>
             </a>
-            <div class="ms-auto d-flex gap-2"><a href="../index.html" class="btn btn-outline-danger btn-sm fw-bold"><i class="fa-solid fa-arrow-right-from-bracket me-1"></i>Cerrar Sesión</a></div>
+            
+            <div class="ms-auto d-flex gap-2">
+                <a href="../index.html" class="btn btn-outline-danger btn-sm fw-bold"><i class="fa-solid fa-arrow-right-from-bracket me-1"></i>Cerrar Sesión</a>
+            </div>
         </nav>
     </header>
 
     <div id="admin-top-bar" class="bg-dark text-white py-2">
         <div class="container-fluid px-4 d-flex justify-content-between align-items-center fs-7">
             <span><i class="fa-solid fa-shield-halved me-1"></i> Panel de Gestión Activo</span>
-            <div class="d-flex gap-2"><a href="../index.html" class="btn btn-sm btn-outline-light py-0">Volver a Tienda Pública</a></div>
+            <div class="d-flex gap-2">
+                <a href="../index.html" class="btn btn-sm btn-outline-light py-0">Volver a Tienda Pública</a>
+            </div>
         </div>
     </div>
 
@@ -31,8 +39,11 @@
         <section id="view-admin" class="view-section h-100">
             <div class="container-fluid h-100">
                 <div class="row h-100">
+                    <!-- SIDEBAR -->
                     <aside class="col-md-3 col-lg-2 bg-dark text-white p-3 min-vh-100">
-                        <div class="fw-bold fs-5 mb-4 border-bottom pb-2"><i class="fa-solid fa-gear me-2"></i> Gestión Recintos</div>
+                        <div class="fw-bold fs-5 mb-4 border-bottom pb-2">
+                            <i class="fa-solid fa-gear me-2"></i> Gestión Recintos
+                        </div>
                         <div class="nav flex-column nav-pills gap-2">
                             <a class="nav-link text-white admin-tab active bg-primary" href="#" onclick="switchAdminTab(event, 'admin-dashboard')"><i class="fa-solid fa-chart-line me-2"></i> Dashboard</a>
                             <a class="nav-link text-white admin-tab" href="#" onclick="switchAdminTab(event, 'admin-productos')"><i class="fa-solid fa-boxes-stacked me-2"></i> Productos / Canchas</a>
@@ -41,14 +52,46 @@
                         </div>
                     </aside>
 
+                    <!-- CONTENIDO CENTRAL -->
                     <div class="col-md-9 col-lg-10 p-4">
+                        
                         <!-- TAB: DASHBOARD -->
                         <div id="admin-dashboard" class="admin-section">
                             <h2 class="h4 fw-bold mb-4">Métricas Generales</h2>
                             <div class="row g-3">
-                                <div class="col-md-4"><div class="card shadow-sm p-3 border-start border-4 border-primary"><div class="d-flex align-items-center"><i class="fa-solid fa-calendar-check fs-1 text-primary me-3"></i><div><h3 class="h2 fw-bold m-0">6</h3><p class="text-muted m-0 small">Canchas e Implementos</p></div></div></div></div>
-                                <div class="col-md-4"><div class="card shadow-sm p-3 border-start border-4 border-success"><div class="d-flex align-items-center"><i class="fa-solid fa-user fs-1 text-success me-3"></i><div><h3 class="h2 fw-bold m-0">2</h3><p class="text-muted m-0 small">Usuarios Registrados</p></div></div></div></div>
-                                <div class="col-md-4"><div class="card shadow-sm p-3 border-start border-4 border-danger"><div class="d-flex align-items-center"><i class="fa-solid fa-triangle-exclamation fs-1 text-danger me-3"></i><div><h3 class="h2 fw-bold m-0">1</h3><p class="text-muted m-0 small">Alertas de Stock Crítico</p></div></div></div></div>
+                                <div class="col-md-4">
+                                    <div class="card shadow-sm p-3 border-start border-4 border-primary">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fa-solid fa-calendar-check fs-1 text-primary me-3"></i>
+                                            <div>
+                                                <h3 class="h2 fw-bold m-0">6</h3>
+                                                <p class="text-muted m-0 small">Canchas e Implementos</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card shadow-sm p-3 border-start border-4 border-success">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fa-solid fa-user fs-1 text-success me-3"></i>
+                                            <div>
+                                                <h3 class="h2 fw-bold m-0">2</h3>
+                                                <p class="text-muted m-0 small">Usuarios Registrados</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card shadow-sm p-3 border-start border-4 border-danger">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fa-solid fa-triangle-exclamation fs-1 text-danger me-3"></i>
+                                            <div>
+                                                <h3 class="h2 fw-bold m-0">1</h3>
+                                                <p class="text-muted m-0 small">Alertas de Stock Crítico</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -60,10 +103,42 @@
                             </div>
                             <div class="table-responsive bg-white shadow-sm rounded">
                                 <table class="table table-hover align-middle m-0">
-                                    <thead class="table-light"><tr><th>Código</th><th>Nombre</th><th>Categoría</th><th>Precio</th><th>Stock</th><th>Stock Crítico</th><th>Acciones</th></tr></thead>
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Código</th>
+                                            <th>Nombre</th>
+                                            <th>Categoría</th>
+                                            <th>Precio</th>
+                                            <th>Stock</th>
+                                            <th>Stock Crítico</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
                                     <tbody id="admin-products-tbody">
-                                        <tr><td class="fw-bold">CAN-TEN-01</td><td>Cancha de Tenis - Arcilla</td><td><span class="badge bg-primary-subtle text-primary">Canchas</span></td><td>$18.000</td><td>Disponible</td><td>-</td><td><button class="btn btn-sm btn-outline-secondary" title="Editar"><i class="fa-solid fa-pen"></i></button> <button class="btn btn-sm btn-outline-danger" title="Eliminar"><i class="fa-solid fa-trash"></i></button></td></tr>
-                                        <tr><td class="fw-bold">IMP-BAL-05</td><td>Balón Oficial N° 5</td><td><span class="badge bg-info-subtle text-info">Implementos</span></td><td>$15.000</td><td>4</td><td><span class="text-danger fw-bold"><i class="fa-solid fa-triangle-exclamation"></i> 2</span></td><td><button class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-pen"></i></button> <button class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button></td></tr>
+                                        <tr>
+                                            <td class="fw-bold">CAN-TEN-01</td>
+                                            <td>Cancha de Tenis - Arcilla</td>
+                                            <td><span class="badge bg-primary-subtle text-primary">Canchas</span></td>
+                                            <td>$18.000</td>
+                                            <td>Disponible</td>
+                                            <td>-</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-secondary" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                                                <button class="btn btn-sm btn-outline-danger" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">IMP-BAL-05</td>
+                                            <td>Balón Oficial N° 5</td>
+                                            <td><span class="badge bg-info-subtle text-info">Implementos</span></td>
+                                            <td>$15.000</td>
+                                            <td>4</td>
+                                            <td><span class="text-danger fw-bold"><i class="fa-solid fa-triangle-exclamation"></i> 2</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-pen"></i></button>
+                                                <button class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button>
+                                            </td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -77,19 +152,98 @@
                             </div>
                             <div class="table-responsive bg-white shadow-sm rounded">
                                 <table class="table table-hover align-middle m-0">
-                                    <thead class="table-light"><tr><th>RUN</th><th>Nombre Completo</th><th>Correo</th><th>Tipo / Rol</th><th>Comuna</th><th>Acciones</th></tr></thead>
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>RUN</th>
+                                            <th>Nombre Completo</th>
+                                            <th>Correo</th>
+                                            <th>Tipo / Rol</th>
+                                            <th>Comuna</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
                                     <tbody id="admin-users-tbody">
-                                        <tr><td>18.456.789-0</td><td>María González Pérez</td><td>maria.gp@gmail.com</td><td><span class="badge bg-secondary">Cliente</span></td><td>San Miguel</td><td><button class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-eye"></i> Ver</button></td></tr>
-                                        <tr><td>12.345.678-9</td><td>Carlos Administrador</td><td>admin@duoc.cl</td><td><span class="badge bg-dark">Admin</span></td><td>Providencia</td><td><button class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-eye"></i> Ver</button></td></tr>
+                                        <tr>
+                                            <td>18.456.789-0</td>
+                                            <td>María González Pérez</td>
+                                            <td>maria.gp@gmail.com</td>
+                                            <td><span class="badge bg-secondary">Cliente</span></td>
+                                            <td>San Miguel</td>
+                                            <td><button class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-eye"></i> Ver</button></td>
+                                        </tr>
+                                        <tr>
+                                            <td>12.345.678-9</td>
+                                            <td>Carlos Administrador</td>
+                                            <td>admin@duoc.cl</td>
+                                            <td><span class="badge bg-dark">Admin</span></td>
+                                            <td>Providencia</td>
+                                            <td><button class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-eye"></i> Ver</button></td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
                         </div>
+
+                        <!-- TAB: ÓRDENES -->
+                        <div id="admin-ordenes" class="admin-section d-none">
+                            <h2 class="h4 fw-bold mb-3">Historial de Ordenes de Reserva</h2>
+                            <div class="table-responsive bg-white shadow-sm rounded">
+                                <table class="table table-hover align-middle m-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>N° Orden</th>
+                                            <th>Fecha</th>
+                                            <th>Cliente</th>
+                                            <th>Estado</th>
+                                            <th>Monto Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="admin-orders-tbody">
+                                        <tr>
+                                            <td class="fw-bold">#ORD-2026-001</td>
+                                            <td>10 Sep 2026</td>
+                                            <td>María González Pérez</td>
+                                            <td><span class="badge bg-success">Confirmada</span></td>
+                                            <td class="fw-bold text-success">$18.000</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">#ORD-2026-002</td>
+                                            <td>09 Sep 2026</td>
+                                            <td>Juan Soto</td>
+                                            <td><span class="badge bg-warning text-dark">Pendiente Pago</span></td>
+                                            <td class="fw-bold text-success">$35.000</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
         </section>
     </main>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Función para cambiar de pestañas en el panel de admin
+        function switchAdminTab(event, tabId) {
+            event.preventDefault();
+            
+            // Quitar clase activa de todos los links
+            document.querySelectorAll('.admin-tab').forEach(t => {
+                t.classList.remove('active', 'bg-primary');
+            });
+            // Añadir clase activa al presionado
+            event.currentTarget.classList.add('active', 'bg-primary');
+
+            // Ocultar todas las secciones
+            document.querySelectorAll('.admin-section').forEach(s => {
+                s.classList.add('d-none');
+            });
+            // Mostrar la sección correspondiente
+            document.getElementById(tabId).classList.remove('d-none');
+        }
+    </script>
 </body>
 </html>
