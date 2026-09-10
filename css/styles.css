@@ -1,0 +1,13 @@
+/* ==========================================================================
+   HOJA DE ESTILOS PERSONALIZADA (styles.css)
+   ========================================================================== */
+
+/* Regla general para el puntero */
+.cursor-pointer {
+    cursor: pointer;
+}
+
+/* Utilidad para tamaño de fuente pequeño */
+.fs-7 {
+    font-size: 0.8rem;
+}
