@@ -221,3 +221,121 @@ function clearError(elementId, errorMsgId) {
     if (err !== null) err.textContent = '';
     return true;
 }
+
+// --- FORMULARIOS Y DESPLEGABLES ---
+
+function setupForms() {
+    const formLogin = document.getElementById('form-login');
+    if (formLogin !== null) {
+        formLogin.addEventListener('submit', (e) => {
+            e.preventDefault();
+            let valid = true;
+
+            const correo = document.getElementById('login-correo').value.trim();
+            const pass = document.getElementById('login-password').value.trim();
+
+            if (correo === "") {
+                valid = setError('login-correo', 'err-login-correo', 'El correo es obligatorio.');
+            } else if (!validarCorreoDominio(correo)) {
+                valid = setError('login-correo', 'err-login-correo', 'Dominio no permitido.');
+            } else {
+                clearError('login-correo', 'err-login-correo');
+            }
+
+            if (pass === "" || pass.length < 4) {
+                valid = setError('login-password', 'err-login-password', 'Mínimo 4 caracteres.');
+            } else {
+                clearError('login-password', 'err-login-password');
+            }
+
+            if (valid) {
+                if (correo.toLowerCase() === 'admin@duoc.cl') {
+                    window.location.href = 'admin.html';
+                } else {
+                    window.location.href = 'index.html';
+                }
+            }
+        });
+    }
+
+    const formRegistro = document.getElementById('form-registro');
+    if (formRegistro !== null) {
+        formRegistro.addEventListener('submit', (e) => {
+            e.preventDefault();
+            let valid = true;
+
+            const run = document.getElementById('reg-run').value.trim();
+            const nombre = document.getElementById('reg-nombre').value.trim();
+            const correo = document.getElementById('reg-correo').value.trim();
+            const pass = document.getElementById('reg-password').value;
+            const confirmPass = document.getElementById('reg-confirm-password').value;
+
+            if (run === "" || !validarRUT(run)) {
+                valid = setError('reg-run', 'err-reg-run', 'RUN inválido.');
+            } else {
+                clearError('reg-run', 'err-reg-run');
+            }
+
+            if (nombre === "") {
+                valid = setError('reg-nombre', 'err-reg-nombre', 'Nombre requerido.');
+            } else {
+                clearError('reg-nombre', 'err-reg-nombre');
+            }
+
+            if (correo === "" || !validarCorreoDominio(correo)) {
+                valid = setError('reg-correo', 'err-reg-correo', 'Correo no válido.');
+            } else {
+                clearError('reg-correo', 'err-reg-correo');
+            }
+
+            if (pass === "" || pass.length < 4) {
+                valid = setError('reg-password', 'err-reg-password', 'Mínimo 4 caracteres.');
+            } else {
+                clearError('reg-password', 'err-reg-password');
+            }
+
+            if (pass !== confirmPass) {
+                valid = setError('reg-confirm-password', 'err-reg-confirm-password', 'Las contraseñas no coinciden.');
+            } else {
+                clearError('reg-confirm-password', 'err-reg-confirm-password');
+            }
+
+            if (valid) {
+                alert('Registro exitoso. Serás redirigido al login.');
+                window.location.href = 'login.html';
+            }
+        });
+    }
+}
+
+// Llenado de regiones
+function initRegionDropdowns() {
+    const selRegion = document.getElementById('reg-region');
+    const selComuna = document.getElementById('reg-comuna');
+    
+    if (selRegion === null || selComuna === null) return;
+
+    selRegion.innerHTML = '<option value="">-- Seleccione Región --</option>';
+    
+    for (let region in REGIONES_COMUNAS) {
+        const opt = document.createElement('option');
+        opt.value = region;
+        opt.textContent = region;
+        selRegion.appendChild(opt);
+    }
+
+    selRegion.addEventListener('change', () => {
+        selComuna.innerHTML = '<option value="">-- Seleccione Comuna --</option>';
+        
+        let comunasDeLaRegion = REGIONES_COMUNAS[selRegion.value];
+        
+        if (comunasDeLaRegion !== undefined) {
+            for (let i = 0; i < comunasDeLaRegion.length; i++) {
+                const opt = document.createElement('option');
+                opt.value = comunasDeLaRegion[i];
+                opt.textContent = comunasDeLaRegion[i];
+                selComuna.appendChild(opt);
+            }
+        }
+    });
+}
