@@ -154,3 +154,70 @@ function renderHomeFeatured() {
     
     container.innerHTML = htmlAcumulado;
 }
+
+// Añadir al carrito (funcion futura)
+function addToCart(productId) {
+    alert("Reserva añadida con éxito");
+}
+
+
+// --- FUNCIONES DE VALIDACIÓN ---
+
+// Validación de RUT
+function validarRUT(rut) {
+    rut = rut.replace(/[^0-9kK]/g, '');
+    if (rut.length < 7 || rut.length > 9) return false;
+
+    const dv = rut.slice(-1).toUpperCase();
+    const rutNum = parseInt(rut.slice(0, -1), 10);
+    if (isNaN(rutNum)) return false;
+
+    let suma = 0, multiplicador = 2, temp = rutNum;
+    while (temp > 0) {
+        suma += (temp % 10) * multiplicador;
+        temp = Math.floor(temp / 10);
+        multiplicador = multiplicador === 7 ? 2 : multiplicador + 1;
+    }
+
+    const dvEsperado = 11 - (suma % 11);
+    let dvCalc = "";
+    
+    if (dvEsperado === 11) {
+        dvCalc = "0";
+    } else if (dvEsperado === 10) {
+        dvCalc = "K";
+    } else {
+        dvCalc = dvEsperado.toString();
+    }
+    
+    return dv === dvCalc;
+}
+
+// Validación de correo por dominio
+function validarCorreoDominio(correo) {
+    const dominios = ['@duoc.cl', '@profesor.duoc.cl', '@gmail.com'];
+    let correoMin = correo.toLowerCase();
+    
+    for (let i = 0; i < dominios.length; i++) {
+        if (correoMin.endsWith(dominios[i])) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function setError(elementId, errorMsgId, message) {
+    const el = document.getElementById(elementId);
+    const err = document.getElementById(errorMsgId);
+    if (el !== null) el.classList.add('is-invalid');
+    if (err !== null) err.textContent = message;
+    return false;
+}
+
+function clearError(elementId, errorMsgId) {
+    const el = document.getElementById(elementId);
+    const err = document.getElementById(errorMsgId);
+    if (el !== null) el.classList.remove('is-invalid');
+    if (err !== null) err.textContent = '';
+    return true;
+}
