@@ -1,9 +1,13 @@
-// src/pages/Home.jsx
 import { Link } from "react-router-dom";
+import { INITIAL_PRODUCTS } from "../data/products";
+import { formatCLP } from "../utils/format";
 
 function Home() {
+  const destacados = INITIAL_PRODUCTS.slice(0, 3);
+
   return (
     <>
+      {/* Hero */}
       <section className="hero-banner bg-primary text-white text-center py-5">
         <div className="container py-4 my-3">
           <h1 className="display-5 fw-bold mb-3">
@@ -118,12 +122,39 @@ function Home() {
         </div>
       </div>
 
-      {/* Contenedor estático para productos destacados */}
+      {/* Productos Destacados */}
       <div className="container pb-5">
         <h2 className="h3 fw-bold border-start border-4 border-info ps-3 mb-4 text-primary">
           Destacados del Polideportivo
         </h2>
-        <div className="row g-4" id="home-featured-products"></div>
+        <div className="row g-4">
+          {destacados.map((p) => (
+            <div className="col-md-4" key={p.id}>
+              <div className="card h-100 shadow-sm border-0">
+                <img
+                  src={p.imagen}
+                  className="card-img-top"
+                  alt={p.nombre}
+                  style={{ height: "200px", objectFit: "cover" }}
+                />
+                <div className="card-body d-flex flex-column">
+                  <div className="d-flex justify-content-between align-items-start mb-2">
+                    <span className="badge bg-primary-subtle text-primary fw-bold px-2 py-1">
+                      {p.categoria}
+                    </span>
+                    <span className="fw-bold text-success fs-5">
+                      {formatCLP(p.precio)}
+                    </span>
+                  </div>
+                  <h5 className="card-title fw-bold fs-6">{p.nombre}</h5>
+                  <p className="card-text text-muted small flex-grow-1">
+                    {p.descripcion}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </>
   );
