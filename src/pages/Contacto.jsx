@@ -1,5 +1,24 @@
+import { useState } from "react";
 
 function Contacto() {
+  const [form, setForm] = useState({
+    nombre: "",
+    correo: "",
+    comentario: "",
+  });
+  const [enviado, setEnviado] = useState(false);
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log("Mensaje de contacto:", form);
+    setEnviado(true);
+    setForm({ nombre: "", correo: "", comentario: "" });
+  };
+
   return (
     <div className="container py-5">
       <div className="card shadow-sm p-4 mx-auto" style={{ maxWidth: "600px" }}>
@@ -8,44 +27,54 @@ function Contacto() {
           ¿Tienes dudas sobre los recintos o las reservas? Escríbenos.
         </p>
 
-        <form id="form-contacto" noValidate>
+        {enviado && (
+          <div className="alert alert-success">
+            ¡Mensaje enviado correctamente! Te contactaremos pronto.
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit}>
           <div className="mb-3">
-            <label htmlFor="contact-nombre" className="form-label fw-semibold">
-              Nombre Completo *
-            </label>
+            <label className="form-label fw-semibold">Nombre Completo *</label>
             <input
               type="text"
-              id="contact-nombre"
+              name="nombre"
               className="form-control"
               placeholder="Ej: Juan Pérez"
+              value={form.nombre}
+              onChange={handleChange}
+              required
             />
-            <div className="text-danger small mt-1" id="err-contact-nombre"></div>
           </div>
 
           <div className="mb-3">
-            <label htmlFor="contact-correo" className="form-label fw-semibold">
+            <label className="form-label fw-semibold">
               Correo Electrónico *
             </label>
             <input
               type="email"
-              id="contact-correo"
+              name="correo"
               className="form-control"
               placeholder="ejemplo@gmail.com"
+              value={form.correo}
+              onChange={handleChange}
+              required
             />
-            <div className="text-danger small mt-1" id="err-contact-correo"></div>
           </div>
 
           <div className="mb-3">
-            <label htmlFor="contact-comentario" className="form-label fw-semibold">
+            <label className="form-label fw-semibold">
               Comentario / Consulta *
             </label>
             <textarea
-              id="contact-comentario"
+              name="comentario"
               className="form-control"
               rows="4"
               placeholder="Escribe tu mensaje..."
+              value={form.comentario}
+              onChange={handleChange}
+              required
             ></textarea>
-            <div className="text-danger small mt-1" id="err-contact-comentario"></div>
           </div>
 
           <button type="submit" className="btn btn-primary w-100 fw-bold">
