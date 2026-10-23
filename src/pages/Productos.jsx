@@ -5,23 +5,45 @@ import { useCart } from "../context/CartContext";
 
 function Productos() {
   const [filtro, setFiltro] = useState("ALL");
-  const { addToCart, items } = useCart();
-  const [msg, setMsg] = useState("");
+  const { cart, updateQuantity, getItemQuantity } = useCart();
+  
+  // Estado para controlar el modal y el producto seleccionado
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [modalQuantity, setModalQuantity] = useState(1);
+
+  const items = cart || [];
 
   const productosFiltrados =
     filtro === "ALL"
       ? INITIAL_PRODUCTS
       : INITIAL_PRODUCTS.filter((p) => p.categoria === filtro);
 
-  const handleAdd = (product) => {
-    const already = items.find((i) => i.id === product.id);
-    if (already) {
-      setMsg(`"${product.nombre}" ya está en tu carrito`);
-    } else {
-      addToCart(product);
-      setMsg(`"${product.nombre}" agregado a reservas`);
+  // Abrir Modal de detalle
+  const handleOpenModal = (product) => {
+    const currentQty = getItemQuantity(product.id);
+    setSelectedProduct(product);
+    setModalQuantity(currentQty > 0 ? currentQty : 1);
+  };
+
+  // Cerrar Modal
+  const handleCloseModal = () => {
+    setSelectedProduct(null);
+  };
+
+  // Guardar/Actualizar la cantidad desde el modal
+  const handleSaveModal = () => {
+    if (selectedProduct) {
+      updateQuantity(selectedProduct, modalQuantity);
+      handleCloseModal();
     }
-    setTimeout(() => setMsg(""), 2500);
+  };
+
+  // Eliminar producto de la reserva desde el modal
+  const handleRemoveModal = () => {
+    if (selectedProduct) {
+      updateQuantity(selectedProduct, 0);
+      handleCloseModal();
+    }
   };
 
   return (
@@ -42,16 +64,18 @@ function Productos() {
         </select>
       </div>
 
-      {msg && (
-        <div className="alert alert-success py-2">{msg}</div>
-      )}
-
       <div className="row g-4">
         {productosFiltrados.map((p) => {
-          const inCart = items.some((i) => i.id === p.id);
+          const qty = getItemQuantity(p.id);
+          const inCart = qty > 0;
+
           return (
             <div className="col-md-6 col-lg-4" key={p.id}>
-              <div className="card h-100 shadow-sm border-0">
+              <div 
+                className="card h-100 shadow-sm border-0" 
+                style={{ cursor: "pointer" }}
+                onClick={() => handleOpenModal(p)}
+              >
                 <img
                   src={p.imagen}
                   className="card-img-top"
@@ -75,15 +99,21 @@ function Productos() {
                     className={`btn fw-bold mt-2 ${
                       inCart ? "btn-success" : "btn-primary"
                     }`}
-                    onClick={() => handleAdd(p)}
-                    disabled={inCart}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Evita reabrir el modal al pulsar directamente el botón
+                      if (inCart) {
+                        handleOpenModal(p);
+                      } else {
+                        updateQuantity(p, 1);
+                      }
+                    }}
                   >
                     <i
                       className={`fa-solid ${
                         inCart ? "fa-check" : "fa-cart-plus"
                       } me-1`}
                     ></i>
-                    {inCart ? "En el carrito" : "Agregar a Reservas"}
+                    {inCart ? `En el carrito (${qty})` : "Agregar a Reservas"}
                   </button>
                 </div>
               </div>
@@ -95,6 +125,107 @@ function Productos() {
       {productosFiltrados.length === 0 && (
         <div className="text-center text-muted py-5">
           No hay productos en esta categoría.
+        </div>
+      )}
+
+      {/* Modal de Detalle de Producto */}
+      {selectedProduct && (
+        <div
+          className="modal fade show d-block"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+          tabIndex="-1"
+          onClick={handleCloseModal}
+        >
+          <div
+            className="modal-dialog modal-dialog-centered modal-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title fw-bold">{selectedProduct.nombre}</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={handleCloseModal}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div className="row g-3">
+                  <div className="col-md-5">
+                    <img
+                      src={selectedProduct.imagen}
+                      alt={selectedProduct.nombre}
+                      className="img-fluid rounded shadow-sm w-100"
+                      style={{ maxHeight: "250px", objectFit: "cover" }}
+                    />
+                  </div>
+                  <div className="col-md-7 d-flex flex-column justify-content-between">
+                    <div>
+                      <span className="badge bg-primary-subtle text-primary fw-bold mb-2">
+                        {selectedProduct.categoria}
+                      </span>
+                      <h4 className="fw-bold text-success">
+                        {formatCLP(selectedProduct.precio)}
+                      </h4>
+                      <p className="text-muted mt-2">{selectedProduct.descripcion}</p>
+                    </div>
+
+                    <div className="my-3">
+                      <label className="form-label fw-bold small">Cantidad:</label>
+                      <div className="d-flex align-items-center gap-2">
+                        <button
+                          className="btn btn-outline-secondary btn-sm px-3"
+                          onClick={() =>
+                            setModalQuantity((q) => Math.max(1, q - 1))
+                          }
+                        >
+                          -
+                        </button>
+                        <span className="fw-bold px-2">{modalQuantity}</span>
+                        <button
+                          className="btn btn-outline-secondary btn-sm px-3"
+                          onClick={() => setModalQuantity((q) => q + 1)}
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer justify-content-between">
+                {getItemQuantity(selectedProduct.id) > 0 ? (
+                  <button
+                    type="button"
+                    className="btn btn-outline-danger"
+                    onClick={handleRemoveModal}
+                  >
+                    Quitar de Reservas
+                  </button>
+                ) : (
+                  <div></div>
+                )}
+                <div className="d-flex gap-2">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={handleCloseModal}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary fw-bold"
+                    onClick={handleSaveModal}
+                  >
+                    {getItemQuantity(selectedProduct.id) > 0
+                      ? "Actualizar Reserva"
+                      : "Agregar a Reservas"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
