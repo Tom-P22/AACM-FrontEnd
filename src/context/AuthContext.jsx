@@ -13,7 +13,6 @@ export function AuthProvider({ children }) {
     return saved ? JSON.parse(saved) : [];
   });
 
-  // Guardar usuarios y sesión
   useEffect(() => {
     localStorage.setItem("users_deportes", JSON.stringify(users));
   }, [users]);
@@ -27,13 +26,11 @@ export function AuthProvider({ children }) {
   }, [user]);
 
   const register = (userData) => {
-    // Verificar si el correo ya existe
     const exists = users.find((u) => u.correo === userData.correo);
     if (exists) {
       return { success: false, message: "Este correo ya está registrado" };
     }
 
-    // Verificar RUN
     const runExists = users.find((u) => u.run === userData.run);
     if (runExists) {
       return { success: false, message: "Este RUN ya está registrado" };
@@ -43,6 +40,15 @@ export function AuthProvider({ children }) {
       ...userData,
       id: Date.now(),
       role: "user",
+      comuna: userData.comuna || "San Miguel",
+      telefono: userData.telefono || "+56 9 1234 5678",
+      avatar: userData.avatar || "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
+      deporteFavorito: userData.deporteFavorito || "Fútbol / Pádel",
+      tarjetaVecino: true,
+      calificacion: 5.0,
+      reservasRealizadas: 0,
+      puntosDeportista: 100,
+      nivelDeportista: "Deportista Vecino",
       createdAt: new Date().toISOString(),
     };
 
@@ -68,6 +74,16 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  // Nueva función para actualizar perfil de manera segura
+  const updateProfile = (updatedData) => {
+    if (!user) return;
+    const updatedUser = { ...user, ...updatedData };
+    setUser(updatedUser);
+    setUsers((prev) =>
+      prev.map((u) => (u.id === user.id ? updatedUser : u))
+    );
+  };
+
   const isAdmin = user?.role === "admin";
 
   return (
@@ -78,6 +94,7 @@ export function AuthProvider({ children }) {
         register,
         login,
         logout,
+        updateProfile,
         isAdmin,
         isAuthenticated: !!user,
       }}
