@@ -4,18 +4,20 @@ const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
+  const [coupon, setCoupon] = useState("");
+  const [discountApplied, setDiscountApplied] = useState(false);
 
-  // Actualiza o agrega un producto estableciendo una cantidad exacta
+  // Actualiza o agrega un producto con cantidad específica
   const updateQuantity = (product, newQuantity) => {
-    setCart(prevCart => {
-      const exists = prevCart.find(item => item.id === product.id);
+    setCart((prevCart) => {
+      const exists = prevCart.find((item) => item.id === product.id);
 
       if (newQuantity <= 0) {
-        return prevCart.filter(item => item.id !== product.id);
+        return prevCart.filter((item) => item.id !== product.id);
       }
 
       if (exists) {
-        return prevCart.map(item =>
+        return prevCart.map((item) =>
           item.id === product.id ? { ...item, quantity: newQuantity } : item
         );
       }
@@ -24,33 +26,61 @@ export const CartProvider = ({ children }) => {
     });
   };
 
-  // Función de apoyo para agregar 1 unidad rápidamente
   const addToCart = (product) => {
     const currentQty = getItemQuantity(product.id);
     updateQuantity(product, currentQty + 1);
   };
 
-  // Vaciar carrito por completo
-  const clearCart = () => setCart([]);
+  const removeFromCart = (productId) => {
+    setCart((prevCart) => prevCart.filter((item) => item.id !== productId));
+  };
 
-  // Obtener la cantidad de un ítem por su ID
+  const clearCart = () => {
+    setCart([]);
+    setCoupon("");
+    setDiscountApplied(false);
+  };
+
   const getItemQuantity = (id) => {
-    const item = cart.find(item => item.id === id);
+    const item = cart.find((item) => item.id === id);
     return item ? item.quantity : 0;
   };
 
-  // Calcular total de productos acumulados
+  const applyCoupon = (code) => {
+    if (code.trim().toUpperCase() === "SANMIGUEL") {
+      setCoupon("SANMIGUEL");
+      setDiscountApplied(true);
+      return true;
+    }
+    setDiscountApplied(false);
+    return false;
+  };
+
+  // Cálculos automáticos de precio
+  const subtotal = cart.reduce(
+    (acc, item) => acc + (item.precio || item.price || 0) * (item.quantity || 1),
+    0
+  );
+  const discount = discountApplied ? subtotal * 0.1 : 0;
+  const total = subtotal - discount;
   const totalItems = cart.reduce((acc, item) => acc + item.quantity, 0);
 
   return (
-    <CartContext.Provider 
-      value={{ 
-        cart, 
-        updateQuantity, 
-        addToCart, 
-        clearCart, 
-        getItemQuantity, 
-        totalItems 
+    <CartContext.Provider
+      value={{
+        cart,
+        items: cart, // Aliased para compatibilidad
+        updateQuantity,
+        addToCart,
+        removeFromCart,
+        clearCart,
+        getItemQuantity,
+        applyCoupon,
+        subtotal,
+        discount,
+        total,
+        discountApplied,
+        totalItems,
       }}
     >
       {children}

@@ -3,8 +3,11 @@ import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
 
 function Header() {
-  const { cartCount } = useCart();
+  const { totalItems, cart } = useCart();
   const { user, isAuthenticated, logout } = useAuth();
+
+  // Usa totalItems si existe, o calcula la suma de cantidades
+  const count = totalItems ?? cart?.reduce((acc, item) => acc + (item.quantity || 1), 0) ?? 0;
 
   return (
     <header className="bg-white shadow-sm sticky-top" id="public-header">
@@ -69,9 +72,9 @@ function Header() {
               className="btn btn-light rounded-pill position-relative fw-semibold px-3"
             >
               <i className="fa-solid fa-cart-shopping me-1"></i> Reservas
-              {cartCount > 0 && (
+              {count > 0 && (
                 <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                  {cartCount}
+                  {count}
                 </span>
               )}
             </Link>
@@ -79,9 +82,9 @@ function Header() {
             {isAuthenticated ? (
               <div className="d-flex align-items-center gap-2">
                 <span className="small text-muted d-none d-md-inline">
-                  Hola, <strong>{user.nombre}</strong>
+                  Hola, <strong>{user?.nombre}</strong>
                 </span>
-                {user.role === "admin" && (
+                {user?.role === "admin" && (
                   <Link to="/admin" className="btn btn-outline-dark btn-sm fw-bold">
                     Admin
                   </Link>

@@ -7,6 +7,7 @@ import { useAuth } from "../context/AuthContext";
 function Carrito() {
   const {
     items,
+    updateQuantity,
     removeFromCart,
     clearCart,
     applyCoupon,
@@ -72,39 +73,66 @@ function Carrito() {
               </Link>
             </div>
           ) : (
-            items.map((item) => (
-              <div className="card shadow-sm mb-3" key={item.id}>
-                <div className="card-body d-flex gap-3 align-items-center">
-                  <img
-                    src={item.imagen}
-                    alt={item.nombre}
-                    style={{
-                      width: "80px",
-                      height: "80px",
-                      objectFit: "cover",
-                      borderRadius: "8px",
-                    }}
-                  />
-                  <div className="flex-grow-1">
-                    <h5 className="fw-bold mb-1">{item.nombre}</h5>
-                    <span className="badge bg-primary-subtle text-primary">
-                      {item.categoria}
-                    </span>
-                  </div>
-                  <div className="text-end">
-                    <div className="fw-bold text-success fs-5">
-                      {formatCLP(item.precio)}
+            items.map((item) => {
+              const itemPrice = item.precio || item.price || 0;
+              const itemTotal = itemPrice * item.quantity;
+
+              return (
+                <div className="card shadow-sm mb-3" key={item.id}>
+                  <div className="card-body d-flex gap-3 align-items-center flex-wrap">
+                    <img
+                      src={item.imagen || item.image}
+                      alt={item.nombre || item.title}
+                      style={{
+                        width: "80px",
+                        height: "80px",
+                        objectFit: "cover",
+                        borderRadius: "8px",
+                      }}
+                    />
+                    <div className="flex-grow-1">
+                      <h5 className="fw-bold mb-1">{item.nombre || item.title}</h5>
+                      <span className="badge bg-primary-subtle text-primary mb-2">
+                        {item.categoria || item.category}
+                      </span>
+                      
+                      {/* Control de Cantidades */}
+                      <div className="d-flex align-items-center gap-2 mt-1">
+                        <span className="small text-muted me-1">Cantidad:</span>
+                        <button
+                          className="btn btn-sm btn-outline-secondary px-2 py-0"
+                          onClick={() => updateQuantity(item, item.quantity - 1)}
+                        >
+                          -
+                        </button>
+                        <span className="fw-bold px-1">{item.quantity}</span>
+                        <button
+                          className="btn btn-sm btn-outline-secondary px-2 py-0"
+                          onClick={() => updateQuantity(item, item.quantity + 1)}
+                        >
+                          +
+                        </button>
+                      </div>
                     </div>
-                    <button
-                      className="btn btn-sm btn-outline-danger mt-1"
-                      onClick={() => removeFromCart(item.id)}
-                    >
-                      <i className="fa-solid fa-trash"></i> Quitar
-                    </button>
+
+                    <div className="text-end">
+                      <div className="fw-bold text-success fs-5">
+                        {formatCLP(itemTotal)}
+                      </div>
+                      <div className="small text-muted">
+                        ({formatCLP(itemPrice)} c/u)
+                      </div>
+                      <button
+                        className="btn btn-sm btn-outline-danger mt-2"
+                        onClick={() => removeFromCart(item.id)}
+                      >
+                        <i className="fa-solid fa-trash"></i> Quitar
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 
