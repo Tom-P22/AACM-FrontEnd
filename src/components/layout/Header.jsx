@@ -6,7 +6,7 @@ function Header() {
   const { totalItems, cart } = useCart();
   const { user, isAuthenticated, logout } = useAuth();
 
-  // Usa totalItems si existe, o calcula la suma de cantidades
+  // Calcula el total de ítems en el carrito de forma segura
   const count = totalItems ?? cart?.reduce((acc, item) => acc + (item.quantity || 1), 0) ?? 0;
 
   return (
@@ -45,8 +45,7 @@ function Header() {
             </li>
             <li className="nav-item">
               <NavLink className="nav-link" to="/productos">
-                <i className="fa-solid fa-volleyball me-1"></i> Canchas e
-                Equipamiento
+                <i className="fa-solid fa-volleyball me-1"></i> Canchas e Equipamiento
               </NavLink>
             </li>
             <li className="nav-item">
@@ -79,11 +78,15 @@ function Header() {
               )}
             </Link>
 
-            {isAuthenticated ? (
+            {isAuthenticated && user ? (
               <div className="d-flex align-items-center gap-2">
-                <span className="small text-muted d-none d-md-inline">
-                  Hola, <strong>{user?.nombre}</strong>
-                </span>
+                <Link
+                  to="/perfil"
+                  className="btn btn-outline-primary btn-sm fw-bold d-flex align-items-center gap-1"
+                >
+                  <i className="fa-solid fa-user-gear"></i>
+                  <span>Mi Perfil ({user?.nombre || user?.nombreCompleto || "Usuario"})</span>
+                </Link>
                 {user?.role === "admin" && (
                   <Link to="/admin" className="btn btn-outline-dark btn-sm fw-bold">
                     Admin
