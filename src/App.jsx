@@ -11,9 +11,9 @@ import Carrito from "./pages/Carrito";
 import Login from "./pages/Login";
 import Registro from "./pages/Registro";
 import Admin from "./pages/Admin";
+import Perfil from "./pages/Perfil";
 
 function App() {
-
   return (
     <AuthProvider>
       <CartProvider>
@@ -28,6 +28,7 @@ function App() {
               <Route path="/carrito" element={<Carrito />} />
               <Route path="/login" element={<Login />} />
               <Route path="/registro" element={<Registro />} />
+              <Route path="/perfil" element={<Perfil />} />
             </Route>
             {/* Ruta protegida para el administrador */}
             <Route path="/admin" element={<Admin />} />
