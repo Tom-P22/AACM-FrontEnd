@@ -3,6 +3,7 @@ import { useNow } from "../hooks/useNow";
 import { useState } from "react";
 import { filterReservations } from "../utils/filters.js";
 import ReservationReceipt from "./ReservationReceipt";
+import ConfirmDialog from "./ConfirmDialog";
 
 export default function ReservationList({ reservations, onCancel, showCustomer = false }) {
   const now = useNow();
@@ -10,6 +11,8 @@ export default function ReservationList({ reservations, onCancel, showCustomer =
   const visible = filterReservations(reservations, { query, date, status });
   const [detailId, setDetailId] = useState(null);
   const detail = reservations.find((booking) => booking.id === detailId);
+  const [pendingId, setPendingId] = useState(null);
+  const pending = reservations.find((booking) => booking.id === pendingId);
   if (reservations.length === 0) return <p className="alert alert-info">Aún no hay reservas registradas.</p>;
   return (
     <>
@@ -33,13 +36,17 @@ export default function ReservationList({ reservations, onCancel, showCustomer =
             {booking.discount > 0 && <p className="small text-success mb-1">Descuento: {formatCLP(booking.discount)}</p>}
             <button className="btn btn-sm btn-outline-primary me-2" onClick={() => setDetailId(booking.id)}>Ver comprobante</button>
             {booking.status === "confirmada" && new Date(`${booking.date}T${booking.time}:00`) > now && (
-              <button className="btn btn-sm btn-outline-danger" onClick={() => onCancel(booking.id)}>Cancelar reserva</button>
+              <button className="btn btn-sm btn-outline-danger" onClick={() => setPendingId(booking.id)}>Cancelar reserva</button>
             )}
           </div>
         </article>
       ))}
     </div>
     {detail && <ReservationReceipt booking={detail} onClose={() => setDetailId(null)} />}
+    {pending && <ConfirmDialog title="Cancelar reserva" confirmLabel="Sí, cancelar reserva" onClose={() => setPendingId(null)} onConfirm={() => { onCancel(pending.id); setPendingId(null); }}>
+      <p>¿Quieres cancelar la reserva <strong>{pending.id.slice(0, 8)}</strong> del {pending.date} a las {pending.time}?</p>
+      <p className="text-muted mb-0">El horario quedará disponible y la reserva se conservará en tu historial como cancelada.</p>
+    </ConfirmDialog>}
     </>
   );
 }

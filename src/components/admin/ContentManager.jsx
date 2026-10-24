@@ -3,6 +3,7 @@ import { useContent } from "../../context/ContentContext";
 import ContentEditor from "./ContentEditor";
 import { formatCLP } from "../../utils/format.js";
 import { matchesQuery } from "../../utils/filters.js";
+import ConfirmDialog from "../ConfirmDialog";
 
 export default function ContentManager({ type }) {
   const content = useContent();
@@ -12,6 +13,7 @@ export default function ContentManager({ type }) {
   const [form, setForm] = useState(null);
   const [message, setMessage] = useState(null);
   const [query, setQuery] = useState(""); const [status, setStatus] = useState("");
+  const [pending, setPending] = useState(null);
   const visible = records.filter((record) => (!status || (status === "published" ? record.active !== false : record.active === false)) && matchesQuery(query, [record.nombre, record.titulo, record.categoria]));
   const toggle = (id) => {
     const result = isProduct ? content.toggleProduct(id) : content.toggleNews(id);
@@ -36,9 +38,12 @@ export default function ContentManager({ type }) {
           {isProduct && <td>{record.stock}</td>}
           <td><span className={`badge ${record.active === false ? "bg-secondary-subtle text-secondary" : "bg-success-subtle text-success"}`}>{record.active === false ? "Archivado" : "Publicado"}</span></td>
           <td><div className="d-flex gap-2"><button className="btn btn-sm btn-outline-primary" onClick={() => { setForm({ ...record }); setMessage(null); }}>Editar</button>
-            <button className="btn btn-sm btn-outline-secondary" onClick={() => toggle(record.id)}>{record.active === false ? "Restaurar" : "Archivar"}</button></div></td>
+            <button className="btn btn-sm btn-outline-secondary" onClick={() => record.active === false ? toggle(record.id) : setPending(record)}>{record.active === false ? "Restaurar" : "Archivar"}</button></div></td>
         </tr>)}</tbody>
       </table>
     </div></div>
+    {pending && <ConfirmDialog title={isProduct ? "Archivar producto" : "Archivar noticia"} confirmLabel="Sí, archivar" onClose={() => setPending(null)} onConfirm={() => { toggle(pending.id); setPending(null); }}>
+      <p>¿Quieres archivar <strong>{pending.nombre || pending.titulo}</strong>?</p><p className="text-muted mb-0">Se ocultará del sitio. Puedes restaurarlo desde administración.{isProduct ? " Las reservas anteriores conservarán su detalle." : ""}</p>
+    </ConfirmDialog>}
   </>;
 }
