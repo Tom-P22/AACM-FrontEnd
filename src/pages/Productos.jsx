@@ -6,6 +6,7 @@ import { capacity } from "../utils/cart.js";
 import { useReservations } from "../context/ReservationContext";
 import { BOOKING_HOURS, availableQuantity, localDate } from "../utils/reservations.js";
 import { useNow } from "../hooks/useNow";
+import QuickCreate from "../components/QuickCreate";
 
 function Productos() {
   const { products } = useContent();
@@ -81,6 +82,7 @@ function Productos() {
         <h2 className="h3 fw-bold m-0">
           Catálogo de Canchas y Artículos Deportivos
         </h2>
+        <QuickCreate type="products" />
         <select
           aria-label="Filtrar por categoría"
           className="form-select w-auto"
