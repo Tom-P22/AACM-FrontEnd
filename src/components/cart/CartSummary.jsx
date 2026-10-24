@@ -61,9 +61,9 @@ function CartSummary({
         disabled={disabled}
         onClick={onCheckout}
       >
-        <i className="fa-solid fa-calendar-check me-2"></i> Confirmar reserva local
+        <i className="fa-solid fa-calendar-check me-2"></i> Confirmar reserva
       </button>
-      <p className="small text-muted mt-2 mb-0">Demostración sin cobros. El total corresponde al bloque de 60 minutos.</p>
+      <p className="small text-muted mt-2 mb-0">El total corresponde al bloque de 60 minutos.</p>
     </div>
   );
 }

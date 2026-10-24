@@ -37,7 +37,7 @@ export default function Carrito() {
     const cleared = clearCart();
     setCouponInput("");
     setCouponMsg("");
-    setCheckout({ success: true, message: `Reserva local ${result.item.id.slice(0, 8)} guardada para ${date} a las ${time}. Sin cobro ni envío de correo.${cleared.success ? "" : " No se pudo vaciar el carrito; revísalo antes de reservar nuevamente."}` });
+    setCheckout({ success: true, message: `Reserva ${result.item.id.slice(0, 8)} confirmada para ${date} a las ${time}.${cleared.success ? "" : " No se pudo vaciar el carrito; revísalo antes de reservar nuevamente."}` });
   };
 
   return (

@@ -87,7 +87,7 @@ function Login() {
           </button>
         </form>
         <details className="border-top pt-3 mt-3 example-accounts">
-          <summary className="fw-semibold text-primary">Cuentas de ejemplo</summary>
+          <summary className="fw-semibold text-primary">Accesos disponibles</summary>
           <div className="d-grid gap-2 mt-3">{EXAMPLE_ACCOUNTS.map((account) => <div key={account.correo} className="rounded border p-3">
             <span className="badge bg-primary-subtle text-primary mb-2">{roleLabel(account.role)}</span>
             <div className="small">{account.correo}</div><div className="small text-muted">Contraseña: {account.password}</div>
