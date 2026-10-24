@@ -2,25 +2,26 @@ import { INITIAL_PRODUCTS } from "../data/products.js";
 import { IMAGE_OPTIONS, INITIAL_NEWS, NEWS_CATEGORIES } from "../data/news.js";
 import { hasPermission } from "./permissions.js";
 import { readJson, writeJson } from "./storage.js";
+import { isStoredImage } from "./images.js";
 
 export const CONTENT_KEY = "content_deportes_v1";
 export const PRODUCT_CATEGORIES = ["Canchas", "Implementos", "Indumentaria"];
 const clean = (value) => typeof value === "string" ? value.trim() : "";
-const validImage = (value) => IMAGE_OPTIONS.some(([path]) => path === value);
+const validImage = (value) => IMAGE_OPTIONS.some(([path]) => path === value) || isStoredImage(value);
 
 function checkProduct(product) {
   if (!product || clean(product.nombre).length < 3 || clean(product.nombre).length > 100) throw new Error("El nombre debe tener entre 3 y 100 caracteres.");
   if (!PRODUCT_CATEGORIES.includes(product.categoria)) throw new Error("Selecciona una categoría de producto válida.");
   if (!Number.isSafeInteger(product.precio) || product.precio <= 0 || product.precio > 10000000) throw new Error("El precio debe ser un entero entre 1 y 10.000.000 de pesos.");
   if (clean(product.descripcion).length < 10 || clean(product.descripcion).length > 1000) throw new Error("La descripción debe tener entre 10 y 1000 caracteres.");
-  if (!validImage(product.imagen)) throw new Error("Selecciona una imagen de la galería.");
+  if (!validImage(product.imagen)) throw new Error("Selecciona una imagen de la galería o sube una foto válida.");
 }
 
 function checkNews(news) {
   if (!news || clean(news.titulo).length < 5 || clean(news.titulo).length > 150) throw new Error("El título debe tener entre 5 y 150 caracteres.");
   if (!Object.hasOwn(NEWS_CATEGORIES, news.categoria)) throw new Error("Selecciona una categoría de noticia válida.");
   if (clean(news.texto).length < 10 || clean(news.texto).length > 3000) throw new Error("El texto debe tener entre 10 y 3000 caracteres.");
-  if (!validImage(news.imagen)) throw new Error("Selecciona una imagen de la galería.");
+  if (!validImage(news.imagen)) throw new Error("Selecciona una imagen de la galería o sube una foto válida.");
   const date = new Date(`${news.fecha}T12:00:00Z`);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(news.fecha) || Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== news.fecha) throw new Error("Selecciona una fecha válida para la noticia.");
 }

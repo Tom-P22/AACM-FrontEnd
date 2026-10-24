@@ -4,6 +4,7 @@ import { IMAGE_OPTIONS, NEWS_CATEGORIES } from "../../data/news.js";
 import { PRODUCT_CATEGORIES } from "../../utils/content.js";
 import { localDate } from "../../utils/reservations.js";
 import { formatCLP } from "../../utils/format.js";
+import ImageUpload from "../ImageUpload";
 
 export default function ContentManager({ type }) {
   const content = useContent();
@@ -15,9 +16,11 @@ export default function ContentManager({ type }) {
     : { titulo: "", categoria: "Comunidad", texto: "", imagen: "/img/ConcursoTenis.jpg", fecha: localDate() };
   const [form, setForm] = useState(null);
   const [message, setMessage] = useState(null);
+  const [readingImage, setReadingImage] = useState(false);
   const change = (event) => { setForm((prev) => ({ ...prev, [event.target.name]: event.target.value })); setMessage(null); };
   const submit = (event) => {
     event.preventDefault();
+    if (readingImage) return;
     const result = isProduct ? content.saveProduct({ ...form, precio: Number(form.precio) }) : content.saveNews(form);
     setMessage({ success: result.success, text: result.success ? "Cambios guardados correctamente." : result.message });
     if (result.success) setForm(null);
@@ -51,16 +54,18 @@ export default function ContentManager({ type }) {
         </div>
         <div className="col-md-8"><label htmlFor="contenido-imagen" className="form-label">Imagen *</label>
           <select id="contenido-imagen" name="imagen" className="form-select" value={form.imagen} onChange={change}>
+            {!IMAGE_OPTIONS.some(([path]) => path === form.imagen) && <option value={form.imagen}>Foto subida</option>}
             {IMAGE_OPTIONS.map(([path, label]) => <option key={path} value={path}>{label}</option>)}
           </select>
         </div>
+        <div className="col-12"><ImageUpload value={form.imagen} onChange={(imagen) => setForm((prev) => ({ ...prev, imagen }))} onBusyChange={setReadingImage} removeValue={IMAGE_OPTIONS[0][0]} /></div>
         <div className="col-md-9"><label htmlFor="contenido-texto" className="form-label">{isProduct ? "Descripción" : "Contenido de la noticia"} *</label>
           <textarea id="contenido-texto" name={isProduct ? "descripcion" : "texto"} rows={4} className="form-control" minLength={10} maxLength={isProduct ? 1000 : 3000}
             value={isProduct ? form.descripcion : form.texto} onChange={change} required />
         </div>
         <div className="col-md-3 d-flex align-items-end"><img src={form.imagen} alt="Vista previa de la imagen seleccionada" className="content-image-preview rounded" /></div>
       </div>
-      <div className="d-flex gap-2 mt-4"><button className="btn btn-primary" type="submit">Guardar cambios</button><button className="btn btn-outline-secondary" type="button" onClick={() => setForm(null)}>Cancelar edición</button></div>
+      <div className="d-flex gap-2 mt-4"><button className="btn btn-primary" type="submit" disabled={readingImage}>Guardar cambios</button><button className="btn btn-outline-secondary" type="button" onClick={() => setForm(null)} disabled={readingImage}>Cancelar edición</button></div>
     </form>}
     <div className="card shadow-sm border-0 overflow-hidden"><div className="table-responsive">
       <table className="table align-middle mb-0 admin-table">
