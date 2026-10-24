@@ -1,12 +1,20 @@
 import { formatCLP } from "../utils/format";
 import { useNow } from "../hooks/useNow";
+import { useState } from "react";
+import { filterReservations } from "../utils/filters.js";
 
 export default function ReservationList({ reservations, onCancel, showCustomer = false }) {
   const now = useNow();
+  const [query, setQuery] = useState(""); const [date, setDate] = useState(""); const [status, setStatus] = useState("");
+  const visible = filterReservations(reservations, { query, date, status });
   if (reservations.length === 0) return <p className="alert alert-info">Aún no hay reservas registradas.</p>;
   return (
+    <>
+    <div className="row g-3 mb-3"><div className="col-md-6"><label htmlFor="reserva-buscar" className="form-label">{showCustomer ? "Buscar vecino, código o producto" : "Buscar código o producto"}</label><input id="reserva-buscar" type="search" className="form-control" value={query} onChange={(event) => setQuery(event.target.value)} /></div><div className="col-md-3"><label htmlFor="reserva-filtrar-fecha" className="form-label">Fecha</label><input id="reserva-filtrar-fecha" type="date" className="form-control" value={date} onChange={(event) => setDate(event.target.value)} /></div><div className="col-md-3"><label htmlFor="reserva-filtrar-estado" className="form-label">Estado</label><select id="reserva-filtrar-estado" className="form-select" value={status} onChange={(event) => setStatus(event.target.value)}><option value="">Todos</option><option value="confirmada">Confirmadas</option><option value="cancelada">Canceladas</option></select></div></div>
+    <div className="d-flex align-items-center gap-3 mb-3"><small className="text-muted">{visible.length} reservas</small><button className="btn btn-link btn-sm p-0" onClick={() => { setQuery(""); setDate(""); setStatus(""); }}>Limpiar filtros</button></div>
+    {visible.length === 0 && <p className="text-muted">No hay reservas que coincidan con los filtros.</p>}
     <div className="d-grid gap-3">
-      {[...reservations].reverse().map((booking) => (
+      {[...visible].reverse().map((booking) => (
         <article className="card shadow-sm" key={booking.id}>
           <div className="card-body">
             <div className="d-flex justify-content-between align-items-start gap-3 flex-wrap">
@@ -28,5 +36,6 @@ export default function ReservationList({ reservations, onCancel, showCustomer =
         </article>
       ))}
     </div>
+    </>
   );
 }

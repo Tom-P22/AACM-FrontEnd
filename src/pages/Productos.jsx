@@ -7,10 +7,12 @@ import { useReservations } from "../context/ReservationContext";
 import { BOOKING_HOURS, availableQuantity, localDate } from "../utils/reservations.js";
 import { useNow } from "../hooks/useNow";
 import QuickCreate from "../components/QuickCreate";
+import { matchesQuery } from "../utils/filters.js";
 
 function Productos() {
   const { products } = useContent();
   const [filtro, setFiltro] = useState("ALL");
+  const [query, setQuery] = useState("");
   const { updateQuantity, getItemQuantity, date, time, setSchedule } = useCart();
   const { reservations } = useReservations();
   const now = useNow();
@@ -43,10 +45,7 @@ function Productos() {
     };
   }, [selectedProduct]);
 
-  const productosFiltrados =
-    filtro === "ALL"
-      ? products.filter((p) => p.active !== false)
-      : products.filter((p) => p.active !== false && p.categoria === filtro);
+  const productosFiltrados = products.filter((p) => p.active !== false && (filtro === "ALL" || p.categoria === filtro) && matchesQuery(query, [p.nombre, p.descripcion, p.categoria]));
 
   // Abrir Modal de detalle
   const handleOpenModal = (product) => {
@@ -96,6 +95,7 @@ function Productos() {
         </select>
       </div>
 
+      <div className="mb-3"><label htmlFor="producto-buscar" className="form-label">Buscar producto o cancha</label><input id="producto-buscar" type="search" className="form-control" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Nombre, descripción o categoría" /></div>
       <div className="card border-0 shadow-sm p-3 mb-4">
         <div className="row g-3 align-items-end">
           <div className="col-md-4"><label htmlFor="catalogo-fecha" className="form-label">Consultar disponibilidad</label><input id="catalogo-fecha" type="date" min={localDate(now)} value={date} className="form-control" onChange={(event) => setSchedule(event.target.value, time)} /></div>
@@ -166,7 +166,7 @@ function Productos() {
 
       {productosFiltrados.length === 0 && (
         <div className="text-center text-muted py-5">
-          No hay productos en esta categoría.
+          No hay productos que coincidan con la búsqueda.
         </div>
       )}
 

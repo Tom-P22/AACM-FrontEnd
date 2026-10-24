@@ -11,6 +11,7 @@ import StatCard from "../components/ui/StatCard";
 import Avatar from "../components/Avatar";
 import { roleLabel } from "../utils/permissions.js";
 import MessagesPanel from "../components/admin/MessagesPanel";
+import { matchesQuery } from "../utils/filters.js";
 
 export default function Admin() {
   const { users, user, isAuthenticated, canAccessAdmin, can } = useAuth();
@@ -18,6 +19,7 @@ export default function Admin() {
   const { reservations, cancelReservation } = useReservations();
   const [tab, setTab] = useState("dashboard");
   const [notice, setNotice] = useState(null);
+  const [userQuery, setUserQuery] = useState("");
 
   if (!isAuthenticated || !canAccessAdmin) return <div className="min-vh-100 bg-light"><Header /><main className="container py-5 text-center">
     <h1 className="h3">{isAuthenticated ? "Acceso restringido" : "Debes iniciar sesión para acceder al panel"}</h1>
@@ -68,9 +70,10 @@ export default function Admin() {
       {activeTab === "noticias" && can("news:write") && <ContentManager key="news" type="news" />}
       {activeTab === "usuarios" && can("users:read") && <>
         <h2 className="h4 fw-bold mb-4">Usuarios registrados</h2>
+        <div className="mb-3"><label htmlFor="usuario-buscar" className="form-label">Buscar nombre, correo o RUT</label><input id="usuario-buscar" type="search" className="form-control" value={userQuery} onChange={(event) => setUserQuery(event.target.value)} /></div>
         <div className="card border-0 shadow-sm overflow-hidden"><div className="table-responsive"><table className="table align-middle mb-0 admin-table">
           <thead className="table-light"><tr><th scope="col">Usuario</th><th scope="col">RUT</th><th scope="col">Correo</th><th scope="col">Comuna</th><th scope="col">Permisos</th></tr></thead>
-          <tbody>{users.map((account) => <tr key={account.id}><td><div className="d-flex gap-2 align-items-center"><Avatar src={account.avatar} name={account.nombre} size={36} /><span>{account.nombre} {account.apellidos}</span></div></td><td>{account.run}</td><td>{account.correo}</td><td>{account.comuna}</td><td><span className="badge bg-primary-subtle text-primary">{roleLabel(account.role)}</span></td></tr>)}</tbody>
+          <tbody>{users.filter((account) => matchesQuery(userQuery, [account.nombre, account.apellidos, account.correo, account.run])).map((account) => <tr key={account.id}><td><div className="d-flex gap-2 align-items-center"><Avatar src={account.avatar} name={account.nombre} size={36} /><span>{account.nombre} {account.apellidos}</span></div></td><td>{account.run}</td><td>{account.correo}</td><td>{account.comuna}</td><td><span className="badge bg-primary-subtle text-primary">{roleLabel(account.role)}</span></td></tr>)}</tbody>
         </table></div></div>
       </>}
       {activeTab === "ordenes" && can("reservations:manage") && <><h2 className="h4 fw-bold mb-4">Reservas</h2><ReservationList reservations={reservations} onCancel={handleCancel} showCustomer /></>}
