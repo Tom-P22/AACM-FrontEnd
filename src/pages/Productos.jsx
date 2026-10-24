@@ -1,22 +1,46 @@
-import { useState } from "react";
-import { INITIAL_PRODUCTS } from "../data/products";
+import { useEffect, useRef, useState } from "react";
+import { useContent } from "../context/ContentContext";
 import { formatCLP } from "../utils/format";
 import { useCart } from "../context/CartContext";
+import { capacity } from "../utils/cart.js";
 
 function Productos() {
+  const { products } = useContent();
   const [filtro, setFiltro] = useState("ALL");
-  const { cart, updateQuantity, getItemQuantity } = useCart();
+  const { updateQuantity, getItemQuantity } = useCart();
   
   // Estado para controlar el modal y el producto seleccionado
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [modalQuantity, setModalQuantity] = useState(1);
 
-  const items = cart || [];
+  const modalRef = useRef(null);
+  useEffect(() => {
+    if (!selectedProduct) return;
+    const previousFocus = document.activeElement;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    modalRef.current?.focus();
+    const handleKey = (event) => {
+      if (event.key === "Escape") setSelectedProduct(null);
+      if (event.key !== "Tab") return;
+      const controls = Array.from(modalRef.current?.querySelectorAll("button:not(:disabled), [href], input:not(:disabled), select:not(:disabled)") || []);
+      const first = controls[0];
+      const last = controls.at(-1);
+      if (event.shiftKey && (document.activeElement === first || document.activeElement === modalRef.current)) { event.preventDefault(); last?.focus(); }
+      else if (!event.shiftKey && (document.activeElement === last || document.activeElement === modalRef.current)) { event.preventDefault(); first?.focus(); }
+    };
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("keydown", handleKey);
+      document.body.style.overflow = previousOverflow;
+      previousFocus?.focus();
+    };
+  }, [selectedProduct]);
 
   const productosFiltrados =
     filtro === "ALL"
-      ? INITIAL_PRODUCTS
-      : INITIAL_PRODUCTS.filter((p) => p.categoria === filtro);
+      ? products.filter((p) => p.active !== false)
+      : products.filter((p) => p.active !== false && p.categoria === filtro);
 
   // Abrir Modal de detalle
   const handleOpenModal = (product) => {
@@ -33,16 +57,16 @@ function Productos() {
   // Guardar/Actualizar la cantidad desde el modal
   const handleSaveModal = () => {
     if (selectedProduct) {
-      updateQuantity(selectedProduct, modalQuantity);
-      handleCloseModal();
+      const result = updateQuantity(selectedProduct, modalQuantity);
+      if (result.success) handleCloseModal();
     }
   };
 
   // Eliminar producto de la reserva desde el modal
   const handleRemoveModal = () => {
     if (selectedProduct) {
-      updateQuantity(selectedProduct, 0);
-      handleCloseModal();
+      const result = updateQuantity(selectedProduct, 0);
+      if (result.success) handleCloseModal();
     }
   };
 
@@ -53,6 +77,7 @@ function Productos() {
           Catálogo de Canchas y Artículos Deportivos
         </h2>
         <select
+          aria-label="Filtrar por categoría"
           className="form-select w-auto"
           value={filtro}
           onChange={(e) => setFiltro(e.target.value)}
@@ -134,6 +159,10 @@ function Productos() {
           className="modal fade show d-block"
           style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
           tabIndex="-1"
+          ref={modalRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="producto-modal-titulo"
           onClick={handleCloseModal}
         >
           <div
@@ -142,10 +171,11 @@ function Productos() {
           >
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title fw-bold">{selectedProduct.nombre}</h5>
+                <h5 id="producto-modal-titulo" className="modal-title fw-bold">{selectedProduct.nombre}</h5>
                 <button
                   type="button"
                   className="btn-close"
+                  aria-label="Cerrar detalle"
                   onClick={handleCloseModal}
                 ></button>
               </div>
@@ -175,6 +205,8 @@ function Productos() {
                       <div className="d-flex align-items-center gap-2">
                         <button
                           className="btn btn-outline-secondary btn-sm px-3"
+                          disabled={modalQuantity <= 1}
+                          aria-label="Reducir cantidad"
                           onClick={() =>
                             setModalQuantity((q) => Math.max(1, q - 1))
                           }
@@ -184,7 +216,9 @@ function Productos() {
                         <span className="fw-bold px-2">{modalQuantity}</span>
                         <button
                           className="btn btn-outline-secondary btn-sm px-3"
-                          onClick={() => setModalQuantity((q) => q + 1)}
+                          disabled={modalQuantity >= capacity(selectedProduct)}
+                          aria-label="Aumentar cantidad"
+                          onClick={() => setModalQuantity((q) => Math.min(capacity(selectedProduct), q + 1))}
                         >
                           +
                         </button>
