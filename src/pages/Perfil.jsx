@@ -16,6 +16,11 @@ function ProfileForm({ user, updateProfile }) {
   const [message, setMessage] = useState(null);
   const [saving, setSaving] = useState(false);
   const [readingPhoto, setReadingPhoto] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const reset = () => {
+    setForm(Object.fromEntries(Object.keys(form).map((key) => [key, user[key] || (key === "avatar" ? DEFAULT_AVATAR : "")])));
+    setMessage(null);
+  };
 
   const selectPhoto = (event) => {
     const file = event.target.files?.[0];
@@ -46,14 +51,17 @@ function ProfileForm({ user, updateProfile }) {
     const result = await updateProfile(form);
     setSaving(false);
     setMessage({ success: result.success, text: result.success ? "Perfil actualizado correctamente." : result.message });
-    if (result.success) setForm((prev) => Object.fromEntries(Object.keys(prev).map((key) => [key, result.user[key] || ""])));
+    if (result.success) {
+      setForm((prev) => Object.fromEntries(Object.keys(prev).map((key) => [key, result.user[key] || ""])));
+      setEditing(false);
+    }
   };
 
   return (
     <div className="container py-5">
       <div className="card shadow-sm p-4 mx-auto" style={{ maxWidth: "800px" }}>
         <h1 className="h4 fw-bold">Mi perfil</h1>
-        <p className="text-muted">Revisa y actualiza tus datos personales.</p>
+        <p className="text-muted">Tu información personal y tus datos de contacto.</p>
         <div className="bg-light rounded p-3 mb-4">
           <div><strong>RUT:</strong> {user.run}</div>
           <div><strong>Fecha de nacimiento:</strong> {user.fechaNac || "Sin registrar"}</div>
@@ -61,7 +69,18 @@ function ProfileForm({ user, updateProfile }) {
 
         {message && <div className={`alert ${message.success ? "alert-success" : "alert-danger"}`} role="alert">{message.text}</div>}
 
-        <form onSubmit={submit}>
+        {!editing && <>
+          <div className="d-flex align-items-center gap-3 flex-wrap mb-4">
+            <Avatar src={user.avatar} name={user.nombre} size={104} />
+            <div className="flex-grow-1"><h2 className="h5 fw-bold mb-1">{user.nombre} {user.apellidos}</h2><span className="badge bg-primary-subtle text-primary">{roleLabel(user.role)}</span></div>
+            <button className="btn btn-primary" onClick={() => { reset(); setEditing(true); }}>Editar perfil</button>
+          </div>
+          <dl className="row g-3 mb-0">
+            {[["Correo", user.correo], ["Región", user.region], ["Comuna", user.comuna], ["Dirección", user.direccion], ["Teléfono", user.telefono], ["Deporte favorito", user.deporteFavorito]].map(([label, value]) =>
+              <div key={label} className="col-md-6"><dt className="small text-muted fw-normal">{label}</dt><dd className="fw-semibold mb-1" style={{ overflowWrap: "anywhere" }}>{value || "Sin registrar"}</dd></div>)}
+          </dl>
+        </>}
+        {editing && <form onSubmit={submit}>
           <fieldset disabled={saving || readingPhoto}>
             <div className="d-flex align-items-center gap-4 flex-wrap border-bottom pb-4 mb-4">
               <Avatar src={form.avatar} name={user.nombre} size={104} />
@@ -115,8 +134,9 @@ function ProfileForm({ user, updateProfile }) {
               </div>
             </div>
             <button className="btn btn-primary fw-bold mt-4" type="submit">{saving ? "Guardando…" : "Guardar cambios"}</button>
+            <button className="btn btn-outline-secondary mt-4 ms-2" type="button" onClick={() => { reset(); setEditing(false); }}>Cancelar</button>
           </fieldset>
-        </form>
+        </form>}
         <Link to="/mis-reservas" className="mt-3">Ver mis reservas</Link>
         <Link to="/productos" className="mt-3">Ir al catálogo</Link>
       </div>
