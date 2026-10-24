@@ -37,6 +37,7 @@ function CartSummary({
           type="text"
           className="form-control"
           placeholder="Cupón (SANMIGUEL)"
+          aria-label="Código de descuento"
           value={couponInput}
           onChange={(e) => setCouponInput(e.target.value)}
         />
@@ -60,8 +61,9 @@ function CartSummary({
         disabled={disabled}
         onClick={onCheckout}
       >
-        <i className="fa-solid fa-credit-card me-2"></i> Confirmar y Pagar
+        <i className="fa-solid fa-calendar-check me-2"></i> Confirmar reserva local
       </button>
+      <p className="small text-muted mt-2 mb-0">Demostración sin cobros. El total corresponde al bloque de 60 minutos.</p>
     </div>
   );
 }
