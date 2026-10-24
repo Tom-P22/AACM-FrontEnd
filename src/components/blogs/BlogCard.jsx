@@ -16,7 +16,7 @@ function BlogCard({ noticia }) {
       </div>
       <div className="card-footer bg-white border-top-0 pb-3">
         <small className="text-muted">
-          <i className="fa-regular fa-calendar me-1"></i> {noticia.fecha}
+          <i className="fa-regular fa-calendar me-1"></i> {new Date(`${noticia.fecha}T12:00:00`).toLocaleDateString("es-CL", { day: "2-digit", month: "long", year: "numeric" })}
         </small>
       </div>
     </div>
