@@ -10,15 +10,14 @@ import ContentManager from "../components/admin/ContentManager";
 import StatCard from "../components/ui/StatCard";
 import Avatar from "../components/Avatar";
 import { roleLabel } from "../utils/permissions.js";
-import Dialog from "../components/Dialog";
+import MessagesPanel from "../components/admin/MessagesPanel";
 
 export default function Admin() {
   const { users, user, isAuthenticated, canAccessAdmin, can } = useAuth();
   const { products, news } = useContent();
-  const { reservations, messages, cancelReservation } = useReservations();
+  const { reservations, cancelReservation } = useReservations();
   const [tab, setTab] = useState("dashboard");
   const [notice, setNotice] = useState(null);
-  const [photo, setPhoto] = useState(null);
 
   if (!isAuthenticated || !canAccessAdmin) return <div className="min-vh-100 bg-light"><Header /><main className="container py-5 text-center">
     <h1 className="h3">{isAuthenticated ? "Acceso restringido" : "Debes iniciar sesión para acceder al panel"}</h1>
@@ -75,12 +74,8 @@ export default function Admin() {
         </table></div></div>
       </>}
       {activeTab === "ordenes" && can("reservations:manage") && <><h2 className="h4 fw-bold mb-4">Reservas</h2><ReservationList reservations={reservations} onCancel={handleCancel} showCustomer /></>}
-      {activeTab === "consultas" && can("messages:read") && <>
-        <h2 className="h4 fw-bold mb-4">Consultas recibidas</h2>
-        {messages.length === 0 ? <p className="text-muted">Aún no hay consultas.</p> : [...messages].reverse().map((message) => <article key={message.id} className="card border-0 shadow-sm mb-3 p-4"><h3 className="h6 fw-bold">{message.nombre}</h3><p className="small text-muted">{message.correo} · {new Date(message.createdAt).toLocaleString("es-CL")}</p><p className="mb-0" style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{message.comentario}</p>{message.attachment && <button className="btn btn-outline-primary btn-sm mt-3 align-self-start" onClick={() => setPhoto(message.attachment)}>Ver foto adjunta</button>}</article>)}
-      </>}
+      {activeTab === "consultas" && can("messages:read") && <MessagesPanel />}
     </main>
-    {photo && <Dialog title="Foto adjunta a la consulta" onClose={() => setPhoto(null)}><img src={photo} alt="Foto adjunta del vecino" className="img-fluid rounded" /></Dialog>}
     <Footer />
   </div>;
 }

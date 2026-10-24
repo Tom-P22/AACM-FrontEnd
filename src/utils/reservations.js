@@ -3,9 +3,11 @@ import { readJson, writeJson } from "./storage.js";
 import { validarNombre } from "./validations.js";
 import { INITIAL_PRODUCTS } from "../data/products.js";
 import { isStoredImage } from "./images.js";
+import { hasPermission } from "./permissions.js";
 
 export const RESERVATIONS_KEY = "reservations_deportes_v1";
 export const MESSAGES_KEY = "messages_deportes_v1";
+export const MESSAGE_STATUSES = { pendiente: "Pendiente", en_revision: "En revisión", atendida: "Atendida" };
 export const BOOKING_HOURS = Array.from({ length: 14 }, (_, index) => `${String(index + 8).padStart(2, "0")}:00`);
 
 export function localDate(date = new Date()) {
@@ -44,10 +46,11 @@ export function createReservationStore(storage, { now = () => new Date(), uuid =
   const listMessages = () => {
     const saved = readJson(storage, MESSAGES_KEY, []);
     if (!Array.isArray(saved) || saved.some((item) => !item || typeof item.id !== "string" ||
-      typeof item.nombre !== "string" || typeof item.correo !== "string" || typeof item.comentario !== "string" || typeof item.createdAt !== "string" || (item.attachment && !isStoredImage(item.attachment)))) {
+      typeof item.nombre !== "string" || typeof item.correo !== "string" || typeof item.comentario !== "string" || typeof item.createdAt !== "string" || (item.attachment && !isStoredImage(item.attachment)) ||
+      (item.status !== undefined && item.status !== "guardada_localmente" && (typeof item.status !== "string" || !Object.hasOwn(MESSAGE_STATUSES, item.status))))) {
       throw new Error("Las consultas guardadas tienen un formato inválido.");
     }
-    return saved;
+    return saved.map((message) => ({ ...message, status: message.status === "guardada_localmente" || !message.status ? "pendiente" : message.status, attachment: message.attachment || "" }));
   };
 
   return {
@@ -92,9 +95,18 @@ export function createReservationStore(storage, { now = () => new Date(), uuid =
       if (!comentario || comentario.length > 2000) throw new Error("Escribe una consulta de entre 1 y 2000 caracteres.");
       const attachment = data.attachment || "";
       if (attachment && !isStoredImage(attachment)) throw new Error("La foto adjunta no tiene un formato o tamaño válido.");
-      const message = { id: uuid(), nombre, correo, comentario, attachment, createdAt: now().toISOString(), status: "guardada_localmente" };
+      const message = { id: uuid(), nombre, correo, comentario, attachment, createdAt: now().toISOString(), status: "pendiente" };
       writeJson(storage, MESSAGES_KEY, [...listMessages(), message]);
       return message;
+    },
+    updateMessageStatus(id, status, user) {
+      if (!hasPermission(user, "messages:manage")) throw new Error("No tienes permiso para gestionar consultas.");
+      if (typeof status !== "string" || !Object.hasOwn(MESSAGE_STATUSES, status)) throw new Error("El estado de la consulta no es válido.");
+      const messages = listMessages(); const previous = messages.find((message) => message.id === id);
+      if (!previous) throw new Error("La consulta no existe.");
+      const updated = { ...previous, status, updatedAt: now().toISOString() };
+      writeJson(storage, MESSAGES_KEY, messages.map((message) => message.id === id ? updated : message));
+      return updated;
     },
   };
 }

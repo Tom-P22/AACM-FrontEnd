@@ -105,7 +105,7 @@ test("consulta se valida, normaliza y persiste sin envío externo", () => {
   assert.equal(message.nombre, "Ana Pérez");
   assert.equal(message.correo, "ana@example.com");
   assert.equal(message.comentario, "Consulta de prueba");
-  assert.equal(message.status, "guardada_localmente");
+  assert.equal(message.status, "pendiente");
   assert.equal(createReservationStore(storage, options).listMessages()[0].id, message.id);
 });
 test("consultas vacías, correo inválido o texto excesivo no se guardan", () => {

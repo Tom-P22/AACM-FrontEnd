@@ -41,6 +41,7 @@ export function ReservationProvider({ children }) {
       createReservation: (data) => execute(() => store.create({ ...data, user }), "reservations"),
       cancelReservation: (id) => execute(() => store.cancel(id, user), "reservations", true),
       saveMessage: (data) => execute(() => store.saveMessage(data), "messages"),
+      updateMessageStatus: (id, status) => execute(() => store.updateMessageStatus(id, status, user), "messages", true),
     }}>
       {state.error && <div className="alert alert-warning m-3" role="alert">{state.error}</div>}
       {children}

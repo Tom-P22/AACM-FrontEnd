@@ -1,5 +1,5 @@
 const permissions = {
-  admin: ["admin:access", "products:write", "news:write", "users:read", "reservations:manage", "messages:read"],
+  admin: ["admin:access", "products:write", "news:write", "users:read", "reservations:manage", "messages:read", "messages:manage"],
   editor: ["admin:access", "news:write"],
   user: [],
 };
