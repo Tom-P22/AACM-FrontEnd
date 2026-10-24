@@ -12,29 +12,38 @@ import Login from "./pages/Login";
 import Registro from "./pages/Registro";
 import Admin from "./pages/Admin";
 import Perfil from "./pages/Perfil";
+import MisReservas from "./pages/MisReservas";
+import NotFound from "./pages/NotFound";
+import { ReservationProvider } from "./context/ReservationContext";
+import { ContentProvider } from "./context/ContentContext";
 
 function App() {
   return (
     <AuthProvider>
-      <CartProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route element={<Layout />}>
-              <Route path="/" element={<Home />} />
-              <Route path="/productos" element={<Productos />} />
-              <Route path="/nosotros" element={<Nosotros />} />
-              <Route path="/blogs" element={<Blogs />} />
-              <Route path="/contacto" element={<Contacto />} />
-              <Route path="/carrito" element={<Carrito />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/registro" element={<Registro />} />
-              <Route path="/perfil" element={<Perfil />} />
-            </Route>
-            {/* Ruta protegida para el administrador */}
-            <Route path="/admin" element={<Admin />} />
-          </Routes>
-        </BrowserRouter>
-      </CartProvider>
+      <ContentProvider>
+        <CartProvider>
+          <ReservationProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route element={<Layout />}>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/productos" element={<Productos />} />
+                  <Route path="/nosotros" element={<Nosotros />} />
+                  <Route path="/blogs" element={<Blogs />} />
+                  <Route path="/contacto" element={<Contacto />} />
+                  <Route path="/carrito" element={<Carrito />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/registro" element={<Registro />} />
+                  <Route path="/perfil" element={<Perfil />} />
+                  <Route path="/mis-reservas" element={<MisReservas />} />
+                  <Route path="*" element={<NotFound />} />
+                </Route>
+                <Route path="/admin" element={<Admin />} />
+              </Routes>
+            </BrowserRouter>
+          </ReservationProvider>
+        </CartProvider>
+      </ContentProvider>
     </AuthProvider>
   );
 }
