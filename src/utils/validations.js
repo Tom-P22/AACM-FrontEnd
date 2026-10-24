@@ -13,7 +13,7 @@ export function validarRut(rut) {
   const cuerpo = limpio.slice(0, -1);
   const dv = limpio.slice(-1);
 
-  if (!/^\d+$/.test(cuerpo)) return false;
+  if (!/^[1-9]\d{5,7}$/.test(cuerpo)) return false;
   if (!/^[\dK]$/.test(dv)) return false;
 
   let suma = 0;
@@ -37,6 +37,7 @@ export function validarRut(rut) {
  * Normaliza RUT a formato sin puntos ni guión, mayúsculas (ej: 19011022K)
  */
 export function normalizarRut(rut) {
+  if (typeof rut !== "string") return "";
   return rut.replace(/\./g, "").replace(/-/g, "").replace(/\s/g, "").toUpperCase();
 }
 
@@ -61,10 +62,16 @@ export function validarCorreo(correo) {
  * Fecha de nacimiento: debe tener al menos 18 años (no futuros, no menores).
  */
 export function validarMayorDeEdad(fechaNac) {
-  if (!fechaNac) return false;
+  if (typeof fechaNac !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(fechaNac)) return false;
 
   const nacimiento = new Date(fechaNac + "T00:00:00");
   if (Number.isNaN(nacimiento.getTime())) return false;
+  const [year, month, day] = fechaNac.split("-").map(Number);
+  if (
+    nacimiento.getFullYear() !== year ||
+    nacimiento.getMonth() !== month - 1 ||
+    nacimiento.getDate() !== day
+  ) return false;
 
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
@@ -87,15 +94,18 @@ export function validarMayorDeEdad(fechaNac) {
  */
 export function fechaMaxima18Anos() {
   const d = new Date();
-  d.setFullYear(d.getFullYear() - 18);
-  return d.toISOString().split("T")[0];
+  const month = d.getMonth();
+  const limite = new Date(d.getFullYear() - 18, month, d.getDate());
+  // El 29 de febrero puede no existir en el año de destino.
+  if (limite.getMonth() !== month) limite.setDate(0);
+  return [limite.getFullYear(), String(limite.getMonth() + 1).padStart(2, "0"), String(limite.getDate()).padStart(2, "0")].join("-");
 }
 
 /**
  * Contraseña: mínimo 4 caracteres y al menos una mayúscula
  */
 export function validarPassword(password) {
-  if (!password || password.length < 4) return false;
+  if (typeof password !== "string" || password.length < 4) return false;
   return /[A-Z]/.test(password);
 }
 
@@ -103,6 +113,6 @@ export function validarPassword(password) {
  * Nombre/apellido: no vacío y solo letras (permite espacios y acentos)
  */
 export function validarNombre(texto) {
-  if (!texto || !texto.trim()) return false;
+  if (typeof texto !== "string" || !texto.trim()) return false;
   return /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(texto.trim());
 }
