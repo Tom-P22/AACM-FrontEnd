@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useReservations } from "../context/ReservationContext";
 
 function Contacto() {
   const [form, setForm] = useState({
@@ -6,17 +7,19 @@ function Contacto() {
     correo: "",
     comentario: "",
   });
-  const [enviado, setEnviado] = useState(false);
+  const [result, setResult] = useState(null);
+  const { saveMessage } = useReservations();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    setResult(null);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Mensaje de contacto:", form);
-    setEnviado(true);
-    setForm({ nombre: "", correo: "", comentario: "" });
+    const response = saveMessage(form);
+    setResult(response);
+    if (response.success) setForm({ nombre: "", correo: "", comentario: "" });
   };
 
   return (
@@ -27,18 +30,21 @@ function Contacto() {
           ¿Tienes dudas sobre los recintos o las reservas? Escríbenos.
         </p>
 
-        {enviado && (
-          <div className="alert alert-success">
-            ¡Mensaje enviado correctamente! Te contactaremos pronto.
+        {result && (
+          <div className={`alert ${result.success ? "alert-success" : "alert-danger"}`} role="alert">
+            {result.success ? "Consulta guardada en este navegador y disponible en el panel de administración. No se envió por correo." : result.message}
           </div>
         )}
 
         <form onSubmit={handleSubmit}>
           <div className="mb-3">
-            <label className="form-label fw-semibold">Nombre Completo *</label>
+            <label htmlFor="contacto-nombre" className="form-label fw-semibold">Nombre Completo *</label>
             <input
               type="text"
               name="nombre"
+              id="contacto-nombre"
+              maxLength={100}
+              autoComplete="name"
               className="form-control"
               placeholder="Ej: Juan Pérez"
               value={form.nombre}
@@ -48,12 +54,15 @@ function Contacto() {
           </div>
 
           <div className="mb-3">
-            <label className="form-label fw-semibold">
+            <label htmlFor="contacto-correo" className="form-label fw-semibold">
               Correo Electrónico *
             </label>
             <input
               type="email"
               name="correo"
+              id="contacto-correo"
+              maxLength={254}
+              autoComplete="email"
               className="form-control"
               placeholder="ejemplo@gmail.com"
               value={form.correo}
@@ -63,11 +72,13 @@ function Contacto() {
           </div>
 
           <div className="mb-3">
-            <label className="form-label fw-semibold">
+            <label htmlFor="contacto-comentario" className="form-label fw-semibold">
               Comentario / Consulta *
             </label>
             <textarea
               name="comentario"
+              id="contacto-comentario"
+              maxLength={2000}
               className="form-control"
               rows="4"
               placeholder="Escribe tu mensaje..."
@@ -78,7 +89,7 @@ function Contacto() {
           </div>
 
           <button type="submit" className="btn btn-primary w-100 fw-bold">
-            Enviar Mensaje
+            Guardar consulta local
           </button>
         </form>
       </div>
