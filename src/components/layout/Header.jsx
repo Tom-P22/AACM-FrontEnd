@@ -1,10 +1,11 @@
 import { Link, NavLink } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
+import Avatar from "../Avatar";
 
 function Header() {
   const { totalItems, cart } = useCart();
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, canAccessAdmin } = useAuth();
 
   // Calcula el total de ítems en el carrito de forma segura
   const count = totalItems ?? cart?.reduce((acc, item) => acc + (item.quantity || 1), 0) ?? 0;
@@ -79,25 +80,18 @@ function Header() {
             </Link>
 
             {isAuthenticated && user ? (
-              <div className="d-flex align-items-center gap-2">
-                <Link
-                  to="/perfil"
-                  className="btn btn-outline-primary btn-sm fw-bold d-flex align-items-center gap-1"
-                >
-                  <i className="fa-solid fa-user-gear"></i>
-                  <span>Mi Perfil ({user?.nombre || user?.nombreCompleto || "Usuario"})</span>
-                </Link>
-                {user?.role === "admin" && (
-                  <Link to="/admin" className="btn btn-outline-dark btn-sm fw-bold">
-                    Admin
-                  </Link>
-                )}
-                <button
-                  onClick={logout}
-                  className="btn btn-outline-danger btn-sm fw-bold"
-                >
-                  Salir
+              <div className="dropdown">
+                <button className="btn btn-outline-primary dropdown-toggle d-flex align-items-center gap-2" type="button" id="account-menu" data-bs-toggle="dropdown" aria-expanded="false">
+                  <Avatar src={user.avatar} name={user.nombre} size={28} />
+                  <span>{user.nombre || "Mi cuenta"}</span>
                 </button>
+                <ul className="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="account-menu">
+                  <li><Link to="/perfil" className="dropdown-item">Mi perfil</Link></li>
+                  <li><Link to="/mis-reservas" className="dropdown-item">Mis reservas</Link></li>
+                  {canAccessAdmin && <li><Link to="/admin" className="dropdown-item">Administración</Link></li>}
+                  <li><hr className="dropdown-divider" /></li>
+                  <li><button className="dropdown-item text-danger" onClick={logout}>Cerrar sesión</button></li>
+                </ul>
               </div>
             ) : (
               <div className="d-flex gap-2">
