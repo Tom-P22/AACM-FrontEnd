@@ -5,8 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "demo": "vite --mode demo --host 127.0.0.1 --port 5174 --strictPort",
     "build": "vite build",
     "lint": "oxlint",
+    "test": "node --test",
+    "test:coverage": "node --test --experimental-test-coverage",
+    "verify": "npm run lint && npm test && npm run build",
     "preview": "vite preview"
   },
   "dependencies": {
