@@ -1,3 +1,4 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";
@@ -13,7 +14,10 @@ import Blogs from "../../src/pages/Blogs.jsx";
 import { hasPermission } from "../../src/utils/permissions.js";
 import { mocks } from "./context-mocks.jsx";
 
-globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+vi.mock("../../src/context/AuthContext", () => import("./context-mocks.jsx"));
+vi.mock("../../src/context/ContentContext", () => import("./context-mocks.jsx"));
+vi.mock("../../src/context/CartContext", () => import("./context-mocks.jsx"));
+vi.mock("../../src/context/ReservationContext", () => import("./context-mocks.jsx"));
 
 describe("DSY1104 — diez pruebas unitarias de componentes React", () => {
   let host;
@@ -22,7 +26,7 @@ describe("DSY1104 — diez pruebas unitarias de componentes React", () => {
   const booking = { id: "reserva-001", customerName: "Vecino Ejemplo", date: "2099-01-04", time: "11:00", status: "confirmada", items: [product], subtotal: 3000, discount: 0, total: 3000, durationMinutes: 60 };
   const summary = { subtotal: 3000, discount: 0, total: 3000, couponInput: "", setCouponInput: () => {}, onApplyCoupon: () => {}, onCheckout: () => {} };
   const render = async (element) => { await act(async () => root.render(<MemoryRouter>{element}</MemoryRouter>)); };
-  const click = async (element) => { expect(element).withContext("Debe existir el control antes de pulsarlo").not.toBeNull(); await act(async () => element.click()); };
+  const click = async (element) => { expect(element, "Debe existir el control antes de pulsarlo").not.toBeNull(); await act(async () => element.click()); };
   const button = (label) => [...document.querySelectorAll("button")].find((node) => node.textContent.trim() === label);
   const input = async (selector, value) => {
     const element = host.querySelector(selector);
@@ -38,7 +42,7 @@ describe("DSY1104 — diez pruebas unitarias de componentes React", () => {
     mocks.auth = { user: null, can: () => false };
     mocks.content = { products: [], news: [] };
     mocks.cart = {};
-    mocks.reservations = { saveMessage: jasmine.createSpy("saveMessage") };
+    mocks.reservations = { saveMessage: vi.fn().mockName("saveMessage") };
   });
   afterEach(async () => { await act(async () => root.unmount()); host.remove(); });
 
@@ -61,10 +65,10 @@ describe("DSY1104 — diez pruebas unitarias de componentes React", () => {
   });
 
   it("03 respeta el título, la etiqueta y el callback de la confirmación", async () => {
-    const confirm = jasmine.createSpy("confirmar"); const close = jasmine.createSpy("cerrar");
+    const confirm = vi.fn().mockName("confirmar"); const close = vi.fn().mockName("cerrar");
     await render(<ConfirmDialog title="Archivar producto" confirmLabel="Sí, archivar" onConfirm={confirm} onClose={close}>Se conservará el historial.</ConfirmDialog>);
     const dialog = document.querySelector("dialog");
-    expect(dialog.open).toBeTrue();
+    expect(dialog.open).toBe(true);
     expect(dialog.textContent).toContain("Archivar producto");
     expect(dialog.textContent).toContain("Se conservará el historial.");
     await click(button("Sí, archivar"));
@@ -72,28 +76,28 @@ describe("DSY1104 — diez pruebas unitarias de componentes React", () => {
   });
 
   it("04 actualiza el estado del formulario de contacto y entrega los datos al guardar", async () => {
-    const save = mocks.reservations.saveMessage.and.returnValue({ success: true, item: { id: "consulta-001" } });
+    const save = mocks.reservations.saveMessage.mockReturnValue({ success: true, item: { id: "consulta-001" } });
     await render(<Contacto />);
     await input("#contacto-nombre", "Vecino Ejemplo"); await input("#contacto-correo", "vecino@gmail.com"); await input("#contacto-comentario", "Consulta sobre las canchas.");
     expect(host.querySelector("#contacto-nombre").value).toBe("Vecino Ejemplo");
     await click(button("Enviar consulta"));
-    expect(save).toHaveBeenCalledOnceWith({ nombre: "Vecino Ejemplo", correo: "vecino@gmail.com", comentario: "Consulta sobre las canchas.", attachment: "" });
+    expect(save).toHaveBeenCalledExactlyOnceWith({ nombre: "Vecino Ejemplo", correo: "vecino@gmail.com", comentario: "Consulta sobre las canchas.", attachment: "" });
     expect(host.querySelector('[role="alert"]').textContent).toContain("Consulta registrada correctamente");
     expect(host.querySelector("#contacto-nombre").value).toBe("");
   });
 
   it("05 emite cambios de cantidad y eliminación y deshabilita aumentar al llegar al stock", async () => {
-    const quantity = jasmine.createSpy("cantidad"); const remove = jasmine.createSpy("quitar");
+    const quantity = vi.fn().mockName("cantidad"); const remove = vi.fn().mockName("quitar");
     await render(<CartItem item={product} onQuantityChange={quantity} onRemove={remove} />);
     await click(host.querySelector('[aria-label^="Aumentar"]'));
-    expect(quantity).toHaveBeenCalledOnceWith(product, 2);
-    await click(button("Quitar")); expect(remove).toHaveBeenCalledOnceWith(4);
+    expect(quantity).toHaveBeenCalledExactlyOnceWith(product, 2);
+    await click(button("Quitar")); expect(remove).toHaveBeenCalledExactlyOnceWith(4);
     await render(<CartItem item={{ ...product, quantity: 3 }} onQuantityChange={quantity} onRemove={remove} />);
-    expect(host.querySelector('[aria-label^="Aumentar"]').disabled).toBeTrue();
+    expect(host.querySelector('[aria-label^="Aumentar"]').disabled).toBe(true);
   });
 
   it("06 permite editar el perfil y descartar cambios sin guardar", async () => {
-    const update = jasmine.createSpy("updateProfile");
+    const update = vi.fn().mockName("updateProfile");
     mocks.auth = { user: { id: "vecino", nombre: "Vicente", apellidos: "Vecino", correo: "vecino@gmail.com", role: "user", deporteFavorito: "Fútbol" }, updateProfile: update };
     await render(<Perfil />);
     expect(host.querySelector("input")).toBeNull();
@@ -120,28 +124,28 @@ describe("DSY1104 — diez pruebas unitarias de componentes React", () => {
     for (const role of ["user", "editor", "admin"]) {
       mocks.auth = { can: (permission) => hasPermission({ role }, permission) };
       await render(<><QuickCreate type="products" /><QuickCreate type="news" /></>);
-      expect(!!button("＋ Agregar producto")).withContext(role).toBe(role === "admin");
-      expect(!!button("＋ Publicar noticia")).withContext(role).toBe(role !== "user");
+      expect(!!button("＋ Agregar producto"), role).toBe(role === "admin");
+      expect(!!button("＋ Publicar noticia"), role).toBe(role !== "user");
     }
   });
 
   it("09 convierte precio y stock del editor y solo anuncia éxito cuando se guarda", async () => {
-    const save = jasmine.createSpy("saveProduct").and.returnValue({ success: false, message: "Sin espacio para guardar" });
-    const saved = jasmine.createSpy("onSaved"); mocks.content.saveProduct = save;
+    const save = vi.fn().mockName("saveProduct").mockReturnValue({ success: false, message: "Sin espacio para guardar" });
+    const saved = vi.fn().mockName("onSaved"); mocks.content.saveProduct = save;
     await render(<ContentEditor type="products" onSaved={saved} onClose={() => {}} />);
     await input("#contenido-nombre", "Set de entrenamiento"); await input("#contenido-valor", "4500"); await input("#contenido-stock", "5"); await input("#contenido-texto", "Artículos deportivos para entrenamiento.");
     await click(button("Guardar cambios"));
-    expect(save.calls.mostRecent().args[0]).toEqual(jasmine.objectContaining({ nombre: "Set de entrenamiento", precio: 4500, stock: 5 }));
+    expect(save.mock.lastCall[0]).toEqual(expect.objectContaining({ nombre: "Set de entrenamiento", precio: 4500, stock: 5 }));
     expect(host.querySelector('[role="alert"]').textContent).toBe("Sin espacio para guardar"); expect(saved).not.toHaveBeenCalled();
-    save.and.returnValue({ success: true }); await click(button("Guardar cambios")); expect(saved).toHaveBeenCalledTimes(1);
+    save.mockReturnValue({ success: true }); await click(button("Guardar cambios")); expect(saved).toHaveBeenCalledTimes(1);
   });
 
   it("10 requiere confirmar la cancelación y Volver conserva la reserva", async () => {
-    const cancel = jasmine.createSpy("cancelarReserva");
+    const cancel = vi.fn().mockName("cancelarReserva");
     await render(<ReservationList reservations={[booking]} onCancel={cancel} />);
     await click(button("Cancelar reserva")); expect(cancel).not.toHaveBeenCalled();
     await click(button("Volver")); expect(document.querySelector("dialog")).toBeNull(); expect(cancel).not.toHaveBeenCalled();
     await click(button("Cancelar reserva")); await click(button("Sí, cancelar reserva"));
-    expect(cancel).toHaveBeenCalledOnceWith("reserva-001"); expect(document.querySelector("dialog")).toBeNull();
+    expect(cancel).toHaveBeenCalledExactlyOnceWith("reserva-001"); expect(document.querySelector("dialog")).toBeNull();
   });
 });
