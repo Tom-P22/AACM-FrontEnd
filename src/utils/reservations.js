@@ -68,7 +68,7 @@ export function createReservationStore(storage, { now = () => new Date(), uuid =
       }
       const booking = {
         id: uuid(), userId: user.id, customerName: `${user.nombre || ""} ${user.apellidos || ""}`.trim(),
-        items: canonical, coupon: coupon === VALID_COUPON ? coupon : "", date, time,
+        items: canonical.map(({ id, nombre, categoria, precio, quantity }) => ({ id, nombre, categoria, precio, quantity })), coupon: coupon === VALID_COUPON ? coupon : "", date, time,
         durationMinutes: 60, ...calculateTotals(canonical, coupon, getProducts()), status: "confirmada",
         paymentStatus: "sin_cobro_demo", createdAt: now().toISOString(),
       };

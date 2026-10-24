@@ -2,11 +2,14 @@ import { formatCLP } from "../utils/format";
 import { useNow } from "../hooks/useNow";
 import { useState } from "react";
 import { filterReservations } from "../utils/filters.js";
+import ReservationReceipt from "./ReservationReceipt";
 
 export default function ReservationList({ reservations, onCancel, showCustomer = false }) {
   const now = useNow();
   const [query, setQuery] = useState(""); const [date, setDate] = useState(""); const [status, setStatus] = useState("");
   const visible = filterReservations(reservations, { query, date, status });
+  const [detailId, setDetailId] = useState(null);
+  const detail = reservations.find((booking) => booking.id === detailId);
   if (reservations.length === 0) return <p className="alert alert-info">Aún no hay reservas registradas.</p>;
   return (
     <>
@@ -28,7 +31,7 @@ export default function ReservationList({ reservations, onCancel, showCustomer =
             <ul className="my-2">{booking.items.map((item) => <li key={item.id}>{item.nombre} × {item.quantity} — {formatCLP(item.precio * item.quantity)}</li>)}</ul>
             <p className="fw-bold mb-1">Total: {formatCLP(booking.total)}</p>
             {booking.discount > 0 && <p className="small text-success mb-1">Descuento: {formatCLP(booking.discount)}</p>}
-            <p className="small text-muted">Reserva local de demostración · Sin cobro</p>
+            <button className="btn btn-sm btn-outline-primary me-2" onClick={() => setDetailId(booking.id)}>Ver comprobante</button>
             {booking.status === "confirmada" && new Date(`${booking.date}T${booking.time}:00`) > now && (
               <button className="btn btn-sm btn-outline-danger" onClick={() => onCancel(booking.id)}>Cancelar reserva</button>
             )}
@@ -36,6 +39,7 @@ export default function ReservationList({ reservations, onCancel, showCustomer =
         </article>
       ))}
     </div>
+    {detail && <ReservationReceipt booking={detail} onClose={() => setDetailId(null)} />}
     </>
   );
 }
