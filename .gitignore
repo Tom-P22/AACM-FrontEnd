@@ -10,6 +10,9 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+.karma-build
+coverage
+entrega
 *.local
 
 # Editor directories and files
