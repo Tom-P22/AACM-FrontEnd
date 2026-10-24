@@ -1,113 +1,73 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { createLocalAuth } from "../utils/localAuth.js";
+import { browserStorage } from "../utils/storage.js";
+import { seedExampleAccounts } from "../utils/seedAccounts.js";
+import { hasPermission } from "../utils/permissions.js";
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem("user_deportes");
-    return saved ? JSON.parse(saved) : null;
-  });
-
-  const [users, setUsers] = useState(() => {
-    const saved = localStorage.getItem("users_deportes");
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [state, setState] = useState({ user: null, users: [] });
+  const [loading, setLoading] = useState(true);
+  const [storageError, setStorageError] = useState("");
+  const [auth] = useState(() => createLocalAuth(browserStorage, window.crypto));
+  const initialization = useRef(null);
 
   useEffect(() => {
-    localStorage.setItem("users_deportes", JSON.stringify(users));
-  }, [users]);
+    let active = true;
+    initialization.current ??= seedExampleAccounts(browserStorage, window.crypto);
+    initialization.current.then((next) => { if (active) setState(next); })
+      .catch((error) => { if (active) setStorageError(error.message); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [auth]);
 
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem("user_deportes", JSON.stringify(user));
-    } else {
-      localStorage.removeItem("user_deportes");
+  const run = async (operation) => {
+    try {
+      const next = await operation();
+      setState(next);
+      setStorageError("");
+      return { success: true, user: next.user };
+    } catch (error) {
+      return { success: false, message: error.message };
     }
-  }, [user]);
-
-  const register = (userData) => {
-    const exists = users.find((u) => u.correo === userData.correo);
-    if (exists) {
-      return { success: false, message: "Este correo ya está registrado" };
-    }
-
-    const runExists = users.find((u) => u.run === userData.run);
-    if (runExists) {
-      return { success: false, message: "Este RUN ya está registrado" };
-    }
-
-    const newUser = {
-      ...userData,
-      id: Date.now(),
-      role: "user",
-      comuna: userData.comuna || "San Miguel",
-      telefono: userData.telefono || "+56 9 1234 5678",
-      avatar: userData.avatar || "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
-      deporteFavorito: userData.deporteFavorito || "Fútbol / Pádel",
-      tarjetaVecino: true,
-      calificacion: 5.0,
-      reservasRealizadas: 0,
-      puntosDeportista: 100,
-      nivelDeportista: "Deportista Vecino",
-      createdAt: new Date().toISOString(),
-    };
-
-    setUsers((prev) => [...prev, newUser]);
-    setUser(newUser);
-    return { success: true, message: "Cuenta creada correctamente" };
-  };
-
-  const login = (correo, password) => {
-    const found = users.find(
-      (u) => u.correo === correo && u.password === password
-    );
-
-    if (!found) {
-      return { success: false, message: "Correo o contraseña incorrectos" };
-    }
-
-    setUser(found);
-    return { success: true, message: "Sesión iniciada" };
   };
 
   const logout = () => {
-    setUser(null);
+    try {
+      auth.logout();
+      setState((prev) => ({ ...prev, user: null }));
+      setStorageError("");
+      return { success: true };
+    } catch (error) {
+      setStorageError(error.message);
+      return { success: false, message: error.message };
+    }
   };
 
-  // Nueva función para actualizar perfil de manera segura
-  const updateProfile = (updatedData) => {
-    if (!user) return;
-    const updatedUser = { ...user, ...updatedData };
-    setUser(updatedUser);
-    setUsers((prev) =>
-      prev.map((u) => (u.id === user.id ? updatedUser : u))
-    );
+  const value = {
+    ...state, loading,
+    register: (data) => run(() => auth.register(data)),
+    login: (correo, password) => run(() => auth.login(correo, password)),
+    updateProfile: (data) => run(() => auth.updateProfile(state.user?.id, data)),
+    logout,
+    isAdmin: state.user?.role === "admin",
+    canAccessAdmin: hasPermission(state.user, "admin:access"),
+    can: (permission) => hasPermission(state.user, permission),
+    isAuthenticated: !!state.user,
   };
-
-  const isAdmin = user?.role === "admin";
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        users,
-        register,
-        login,
-        logout,
-        updateProfile,
-        isAdmin,
-        isAuthenticated: !!user,
-      }}
-    >
-      {children}
+    <AuthContext.Provider value={value}>
+      {storageError && <div className="alert alert-warning m-3" role="alert">{storageError}</div>}
+      {loading ? <div className="container py-5" role="status">Cargando sesión…</div> : children}
     </AuthContext.Provider>
   );
 }
 
+// eslint-disable-next-line react/only-export-components
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth debe usarse dentro de AuthProvider");
-  }
+  if (!context) throw new Error("useAuth debe usarse dentro de AuthProvider");
   return context;
 }
