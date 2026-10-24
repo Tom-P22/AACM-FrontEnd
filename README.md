@@ -1,16 +1,45 @@
-# React + Vite
+# Deportes San Miguel
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Frontend de Administración y Arriendo de Canchas Municipales, desarrollado con React, React Router y Bootstrap. Permite consultar canchas e implementos, realizar reservas y gestionar productos, noticias y consultas según el rol del usuario.
 
-Currently, two official plugins are available:
+## Requisitos
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Node.js 20.19+ o 22.12+; probado con Node.js 24.
+- npm.
+- Chrome o Microsoft Edge para ejecutar las pruebas de componentes con Karma.
 
-## React Compiler
+## Instalar y ejecutar
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```sh
+npm ci
+npm run demo
+```
 
-## Expanding the Oxlint configuration
+Abrir http://127.0.0.1:5174. Para desarrollo también está disponible `npm run dev`.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+Los datos se conservan en el navegador. Utilizar siempre la misma dirección y puerto para acceder a los mismos registros.
+
+## Cuentas disponibles
+
+| Rol | Correo | Contraseña |
+| --- | --- | --- |
+| Administrador | admin@admin.com | Admin123 |
+| Editor de noticias | editor@duoc.cl | Editor123 |
+| Vecino | vecino@gmail.com | Vecino123 |
+
+## Verificar y compilar
+
+```sh
+npm run verify
+```
+
+Ejecuta el análisis de código, 91 pruebas de servicios, 10 pruebas de componentes con Jasmine/Karma y la compilación de producción.
+
+```sh
+npm run test:components
+npm run test:coverage
+npm run build
+npm run preview
+```
+
+Karma detecta Chrome o Edge en Windows. Para otra ubicación o sistema operativo, configurar `CHROME_BIN` con la ruta del navegador.
