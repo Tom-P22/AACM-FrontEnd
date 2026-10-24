@@ -1,247 +1,83 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { INITIAL_PRODUCTS } from "../data/products";
-import { formatCLP } from "../utils/format";
+import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useContent } from "../context/ContentContext";
+import { useReservations } from "../context/ReservationContext";
+import Header from "../components/layout/Header";
+import Footer from "../components/layout/Footer";
+import ReservationList from "../components/ReservationList";
+import ContentManager from "../components/admin/ContentManager";
+import StatCard from "../components/ui/StatCard";
+import Avatar from "../components/Avatar";
+import { roleLabel } from "../utils/permissions.js";
 
-function Admin() {
+export default function Admin() {
+  const { users, user, isAuthenticated, canAccessAdmin, can } = useAuth();
+  const { products, news } = useContent();
+  const { reservations, messages, cancelReservation } = useReservations();
   const [tab, setTab] = useState("dashboard");
-  const { users, user, logout, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
+  const [notice, setNotice] = useState(null);
 
-  // Si no hay sesión, redirigir (protección simple)
-  if (!isAuthenticated) {
-    return (
-      <div className="container py-5 text-center">
-        <h3>Debes iniciar sesión para acceder al panel</h3>
-        <Link to="/login" className="btn btn-primary mt-3">
-          Ir a Login
-        </Link>
-      </div>
-    );
-  }
+  if (!isAuthenticated || !canAccessAdmin) return <div className="min-vh-100 bg-light"><Header /><main className="container py-5 text-center">
+    <h1 className="h3">{isAuthenticated ? "Acceso restringido" : "Debes iniciar sesión para acceder al panel"}</h1>
+    <p className="text-muted">{isAuthenticated ? "Tu cuenta no tiene permisos de administración." : "Ingresa con una cuenta autorizada para continuar."}</p>
+    <Link to={isAuthenticated ? "/" : "/login"} className="btn btn-primary">{isAuthenticated ? "Volver al inicio" : "Ir a Login"}</Link>
+  </main></div>;
 
-  const handleLogout = () => {
-    logout();
-    navigate("/");
+  const tabs = [
+    { id: "dashboard", label: "Resumen", icon: "fa-chart-line" },
+    { id: "productos", label: "Productos y canchas", icon: "fa-boxes-stacked", permission: "products:write" },
+    { id: "noticias", label: "Noticias", icon: "fa-newspaper", permission: "news:write" },
+    { id: "usuarios", label: "Usuarios", icon: "fa-users", permission: "users:read" },
+    { id: "ordenes", label: "Reservas", icon: "fa-calendar-check", permission: "reservations:manage" },
+    { id: "consultas", label: "Consultas", icon: "fa-envelope", permission: "messages:read" },
+  ].filter((item) => !item.permission || can(item.permission));
+  const activeTab = tabs.some((item) => item.id === tab) ? tab : "dashboard";
+  const handleCancel = (id) => {
+    const result = cancelReservation(id);
+    setNotice({ success: result.success, message: result.success ? "Reserva cancelada." : result.message });
   };
 
-  return (
-    <div className="d-flex flex-column min-vh-100">
-      <header className="bg-white shadow-sm sticky-top">
-        <nav className="navbar navbar-light container py-2">
-          <Link className="navbar-brand d-flex align-items-center gap-2" to="/">
-            <i className="fa-solid fa-trophy fs-2 text-primary"></i>
-            <div>
-              <span className="fw-bold d-block lh-1 text-dark fs-5">
-                Deportes San Miguel
-              </span>
-              <small className="text-muted text-uppercase fs-7">
-                Corporación Municipal
-              </small>
-            </div>
-          </Link>
-          <div className="ms-auto d-flex gap-2 align-items-center">
-            <span className="small text-muted">
-              {user?.nombre} {user?.apellidos}
-            </span>
-            <button
-              onClick={handleLogout}
-              className="btn btn-outline-danger btn-sm fw-bold"
-            >
-              <i className="fa-solid fa-arrow-right-from-bracket me-1"></i>
-              Cerrar Sesión
-            </button>
-          </div>
-        </nav>
-      </header>
-
-      <div className="bg-dark text-white py-2">
-        <div className="container-fluid px-4 d-flex justify-content-between align-items-center">
-          <span>
-            <i className="fa-solid fa-shield-halved me-1"></i> Panel de Gestión
-            Activo
-          </span>
-          <Link to="/" className="btn btn-sm btn-outline-light py-0">
-            Volver a Tienda Pública
-          </Link>
-        </div>
+  return <div className="min-vh-100 bg-light d-flex flex-column">
+    <Header />
+    <main className="container py-4 py-lg-5 flex-grow-1 admin-shell">
+      <div className="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+        <div><p className="text-primary small fw-bold text-uppercase mb-1">Deportes San Miguel</p><h1 className="h3 fw-bold mb-1">Panel de administración</h1><p className="text-muted mb-0">Gestiona los recintos, las noticias y la comunidad.</p></div>
+        <div className="d-flex align-items-center gap-3"><Avatar src={user.avatar} name={user.nombre} /><div><div className="fw-semibold">{user.nombre} {user.apellidos}</div><span className="badge bg-primary-subtle text-primary">{roleLabel(user.role)}</span></div></div>
       </div>
-
-      <div className="container-fluid flex-grow-1">
-        <div className="row h-100">
-          <aside className="col-md-3 col-lg-2 bg-dark text-white p-3 min-vh-100">
-            <div className="fw-bold fs-5 mb-4 border-bottom pb-2">
-              <i className="fa-solid fa-gear me-2"></i> Gestión Recintos
-            </div>
-            <div className="nav flex-column nav-pills gap-2">
-              <button
-                className={`nav-link text-white text-start ${
-                  tab === "dashboard" ? "active bg-primary" : ""
-                }`}
-                onClick={() => setTab("dashboard")}
-              >
-                <i className="fa-solid fa-chart-line me-2"></i> Dashboard
-              </button>
-              <button
-                className={`nav-link text-white text-start ${
-                  tab === "productos" ? "active bg-primary" : ""
-                }`}
-                onClick={() => setTab("productos")}
-              >
-                <i className="fa-solid fa-boxes-stacked me-2"></i> Productos /
-                Canchas
-              </button>
-              <button
-                className={`nav-link text-white text-start ${
-                  tab === "usuarios" ? "active bg-primary" : ""
-                }`}
-                onClick={() => setTab("usuarios")}
-              >
-                <i className="fa-solid fa-users-gear me-2"></i> Usuarios
-              </button>
-              <button
-                className={`nav-link text-white text-start ${
-                  tab === "ordenes" ? "active bg-primary" : ""
-                }`}
-                onClick={() => setTab("ordenes")}
-              >
-                <i className="fa-solid fa-file-invoice-dollar me-2"></i> Órdenes
-                / Reservas
-              </button>
-            </div>
-          </aside>
-
-          <div className="col-md-9 col-lg-10 p-4">
-            {tab === "dashboard" && (
-              <>
-                <h2 className="h4 fw-bold mb-4">Métricas Generales</h2>
-                <div className="row g-3">
-                  <div className="col-md-4">
-                    <div className="card shadow-sm p-3 border-start border-4 border-primary">
-                      <div className="d-flex align-items-center">
-                        <i className="fa-solid fa-calendar-check fs-1 text-primary me-3"></i>
-                        <div>
-                          <h3 className="h2 fw-bold m-0">
-                            {INITIAL_PRODUCTS.length}
-                          </h3>
-                          <p className="text-muted m-0 small">
-                            Canchas e Implementos
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="col-md-4">
-                    <div className="card shadow-sm p-3 border-start border-4 border-success">
-                      <div className="d-flex align-items-center">
-                        <i className="fa-solid fa-users fs-1 text-success me-3"></i>
-                        <div>
-                          <h3 className="h2 fw-bold m-0">{users.length}</h3>
-                          <p className="text-muted m-0 small">Usuarios</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="col-md-4">
-                    <div className="card shadow-sm p-3 border-start border-4 border-warning">
-                      <div className="d-flex align-items-center">
-                        <i className="fa-solid fa-receipt fs-1 text-warning me-3"></i>
-                        <div>
-                          <h3 className="h2 fw-bold m-0">0</h3>
-                          <p className="text-muted m-0 small">Reservas</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-
-            {tab === "productos" && (
-              <>
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <h2 className="h4 fw-bold m-0">Productos / Canchas</h2>
-                </div>
-                <div className="table-responsive bg-white shadow-sm rounded">
-                  <table className="table table-hover align-middle m-0">
-                    <thead className="table-light">
-                      <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Categoría</th>
-                        <th>Precio</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {INITIAL_PRODUCTS.map((p) => (
-                        <tr key={p.id}>
-                          <td className="fw-bold">{p.id}</td>
-                          <td>{p.nombre}</td>
-                          <td>
-                            <span className="badge bg-primary-subtle text-primary">
-                              {p.categoria}
-                            </span>
-                          </td>
-                          <td>{formatCLP(p.precio)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </>
-            )}
-
-            {tab === "usuarios" && (
-              <>
-                <h2 className="h4 fw-bold mb-3">Listado de Usuarios</h2>
-                {users.length === 0 ? (
-                  <div className="alert alert-info">
-                    Aún no hay usuarios registrados.
-                  </div>
-                ) : (
-                  <div className="table-responsive bg-white shadow-sm rounded">
-                    <table className="table table-hover align-middle m-0">
-                      <thead className="table-light">
-                        <tr>
-                          <th>RUN</th>
-                          <th>Nombre</th>
-                          <th>Correo</th>
-                          <th>Comuna</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {users.map((u) => (
-                          <tr key={u.id}>
-                            <td className="fw-bold">{u.run}</td>
-                            <td>
-                              {u.nombre} {u.apellidos}
-                            </td>
-                            <td>{u.correo}</td>
-                            <td>{u.comuna}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </>
-            )}
-
-            {tab === "ordenes" && (
-              <>
-                <h2 className="h4 fw-bold mb-3">Órdenes / Reservas</h2>
-                <div className="alert alert-info">
-                  Las reservas se confirman desde el carrito. Historial de
-                  órdenes se puede ampliar más adelante.
-                </div>
-              </>
-            )}
-          </div>
+      <nav className="admin-tabs card border-0 shadow-sm mb-4 p-2" aria-label="Secciones de administración">
+        <div className="nav nav-pills gap-1 flex-nowrap overflow-auto">{tabs.map((item) => <button key={item.id} type="button"
+          className={`nav-link text-nowrap ${activeTab === item.id ? "active" : "text-body-secondary"}`} aria-current={activeTab === item.id ? "page" : undefined}
+          onClick={() => { setTab(item.id); setNotice(null); }}><i className={`fa-solid ${item.icon} me-2`}></i>{item.label}</button>)}</div>
+      </nav>
+      {notice && <p className={`alert ${notice.success ? "alert-success" : "alert-danger"}`} role="alert">{notice.message}</p>}
+      {activeTab === "dashboard" && <>
+        <h2 className="h4 fw-bold mb-4">Resumen general</h2>
+        <div className="row g-3 mb-4">
+          <div className="col-sm-6 col-xl-3"><StatCard icon="fa-volleyball" color="primary" number={products.filter((item) => item.active !== false).length} label="Productos publicados" /></div>
+          <div className="col-sm-6 col-xl-3"><StatCard icon="fa-newspaper" color="info" number={news.filter((item) => item.active !== false).length} label="Noticias publicadas" /></div>
+          {can("users:read") && <div className="col-sm-6 col-xl-3"><StatCard icon="fa-users" color="success" number={users.length} label="Usuarios registrados" /></div>}
+          {can("reservations:manage") && <div className="col-sm-6 col-xl-3"><StatCard icon="fa-calendar-check" color="warning" number={reservations.filter((item) => item.status === "confirmada").length} label="Reservas confirmadas" /></div>}
         </div>
-      </div>
-    </div>
-  );
+        <div className="card border-0 shadow-sm p-4"><h3 className="h5 fw-bold">Tu espacio de gestión</h3><p className="text-muted mb-3">Selecciona una sección para administrar el contenido al que tu cuenta tiene acceso.</p>
+          <div className="d-flex flex-wrap gap-2">{tabs.filter((item) => item.id !== "dashboard").map((item) => <button key={item.id} className="btn btn-outline-primary" onClick={() => setTab(item.id)}>{item.label}</button>)}</div>
+        </div>
+      </>}
+      {activeTab === "productos" && can("products:write") && <ContentManager key="products" type="products" />}
+      {activeTab === "noticias" && can("news:write") && <ContentManager key="news" type="news" />}
+      {activeTab === "usuarios" && can("users:read") && <>
+        <h2 className="h4 fw-bold mb-4">Usuarios registrados</h2>
+        <div className="card border-0 shadow-sm overflow-hidden"><div className="table-responsive"><table className="table align-middle mb-0 admin-table">
+          <thead className="table-light"><tr><th scope="col">Usuario</th><th scope="col">RUT</th><th scope="col">Correo</th><th scope="col">Comuna</th><th scope="col">Permisos</th></tr></thead>
+          <tbody>{users.map((account) => <tr key={account.id}><td><div className="d-flex gap-2 align-items-center"><Avatar src={account.avatar} name={account.nombre} size={36} /><span>{account.nombre} {account.apellidos}</span></div></td><td>{account.run}</td><td>{account.correo}</td><td>{account.comuna}</td><td><span className="badge bg-primary-subtle text-primary">{roleLabel(account.role)}</span></td></tr>)}</tbody>
+        </table></div></div>
+      </>}
+      {activeTab === "ordenes" && can("reservations:manage") && <><h2 className="h4 fw-bold mb-4">Reservas</h2><ReservationList reservations={reservations} onCancel={handleCancel} showCustomer /></>}
+      {activeTab === "consultas" && can("messages:read") && <>
+        <h2 className="h4 fw-bold mb-4">Consultas recibidas</h2>
+        {messages.length === 0 ? <p className="text-muted">Aún no hay consultas.</p> : [...messages].reverse().map((message) => <article key={message.id} className="card border-0 shadow-sm mb-3 p-4"><h3 className="h6 fw-bold">{message.nombre}</h3><p className="small text-muted">{message.correo} · {new Date(message.createdAt).toLocaleString("es-CL")}</p><p className="mb-0" style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{message.comentario}</p></article>)}
+      </>}
+    </main>
+    <Footer />
+  </div>;
 }
-
-export default Admin;
