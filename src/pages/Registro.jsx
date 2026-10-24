@@ -1,7 +1,16 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, Navigate } from "react-router-dom";
 import { REGIONES_COMUNAS } from "../data/products";
 import { useAuth } from "../context/AuthContext";
+import {
+  validarRut,
+  normalizarRut,
+  validarCorreo,
+  validarMayorDeEdad,
+  fechaMaxima18Anos,
+  validarPassword,
+  validarNombre,
+} from "../utils/validations";
 
 function Registro() {
   const [form, setForm] = useState({
@@ -16,11 +25,16 @@ function Registro() {
     password: "",
     confirmPassword: "",
   });
-  const [error, setError] = useState("");
-  const { register } = useAuth();
+  const [errors, setErrors] = useState({});
+  const [errorGeneral, setErrorGeneral] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const { register, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   const comunas = form.region ? REGIONES_COMUNAS[form.region] || [] : [];
+  const maxFechaNac = fechaMaxima18Anos();
+
+  if (isAuthenticated) return <Navigate to="/perfil" replace />;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -29,26 +43,95 @@ function Registro() {
       [name]: value,
       ...(name === "region" ? { comuna: "" } : {}),
     }));
+    // Limpiar error del campo al escribir
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setError("");
+  const validarFormulario = () => {
+    const e = {};
+
+    // RUT
+    if (!form.run.trim()) {
+      e.run = "El RUT es obligatorio";
+    } else if (!validarRut(form.run)) {
+      e.run = "RUT inválido. Revisa el dígito verificador";
+    }
+
+    // Nombre
+    if (!form.nombre.trim()) {
+      e.nombre = "El nombre es obligatorio";
+    } else if (!validarNombre(form.nombre)) {
+      e.nombre = "El nombre solo puede contener letras";
+    }
+
+    // Apellidos
+    if (!form.apellidos.trim()) {
+      e.apellidos = "Los apellidos son obligatorios";
+    } else if (!validarNombre(form.apellidos)) {
+      e.apellidos = "Los apellidos solo pueden contener letras";
+    }
+
+    // Correo
+    if (!form.correo.trim()) {
+      e.correo = "El correo es obligatorio";
+    } else if (!validarCorreo(form.correo)) {
+      e.correo =
+        "Solo se permiten correos @gmail.com, @admin.com o @duoc.cl";
+    }
+
+    // Fecha de nacimiento
+    if (!form.fechaNac) {
+      e.fechaNac = "La fecha de nacimiento es obligatoria";
+    } else if (!validarMayorDeEdad(form.fechaNac)) {
+      e.fechaNac = "Debes tener al menos 18 años";
+    }
+
+    // Región / comuna / dirección
+    if (!form.region) e.region = "Selecciona una región";
+    if (!form.comuna) e.comuna = "Selecciona una comuna";
+    if (!form.direccion.trim()) e.direccion = "La dirección es obligatoria";
+
+    // Contraseña
+    if (!form.password) {
+      e.password = "La contraseña es obligatoria";
+    } else if (!validarPassword(form.password)) {
+      e.password =
+        "Mínimo 4 caracteres y al menos una letra mayúscula";
+    }
 
     if (form.password !== form.confirmPassword) {
-      setError("Las contraseñas no coinciden");
-      return;
-    }
-    if (form.password.length < 4) {
-      setError("La contraseña debe tener al menos 4 caracteres");
-      return;
+      e.confirmPassword = "Las contraseñas no coinciden";
     }
 
-    const result = register(form);
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (submitting) return;
+    setErrorGeneral("");
+
+    if (!validarFormulario()) return;
+
+    const datos = {
+      ...form,
+      run: normalizarRut(form.run),
+      correo: form.correo.trim().toLowerCase(),
+      nombre: form.nombre.trim(),
+      apellidos: form.apellidos.trim(),
+    };
+
+    setSubmitting(true);
+    const result = await register(datos);
+    setSubmitting(false);
     if (result.success) {
-      navigate("/");
+      navigate("/perfil", { replace: true });
     } else {
-      setError(result.message);
+      // Correo o RUT duplicado
+      setErrorGeneral(result.message);
     }
   };
 
@@ -60,87 +143,125 @@ function Registro() {
           Completa tus datos para agendar tus horas de cancha
         </p>
 
-        {error && <div className="alert alert-danger py-2">{error}</div>}
+        {errorGeneral && (
+          <div className="alert alert-danger py-2" role="alert">{errorGeneral}</div>
+        )}
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} noValidate>
+          <fieldset disabled={submitting}>
           <div className="row g-3">
+            {/* RUT */}
             <div className="col-md-6">
-              <label className="form-label fw-semibold">
-                RUN (Sin puntos ni guión) *
+              <label htmlFor="registro-run" className="form-label fw-semibold">
+                RUN*
               </label>
               <input
                 type="text"
+                id="registro-run"
                 name="run"
-                className="form-control"
-                placeholder="19011022K"
+                className={`form-control ${errors.run ? "is-invalid" : ""}`}
+                placeholder="12.345.678-5"
                 value={form.run}
                 onChange={handleChange}
-                required
               />
+              {errors.run && (
+                <div className="invalid-feedback d-block">{errors.run}</div>
+              )}
             </div>
 
+            {/* Nombre */}
             <div className="col-md-6">
-              <label className="form-label fw-semibold">Nombre *</label>
+              <label htmlFor="registro-nombre" className="form-label fw-semibold">Nombre *</label>
               <input
                 type="text"
+                id="registro-nombre"
                 name="nombre"
-                className="form-control"
+                className={`form-control ${errors.nombre ? "is-invalid" : ""}`}
                 placeholder="Juan"
                 value={form.nombre}
                 onChange={handleChange}
-                required
               />
+              {errors.nombre && (
+                <div className="invalid-feedback d-block">{errors.nombre}</div>
+              )}
             </div>
 
+            {/* Apellidos */}
             <div className="col-md-6">
-              <label className="form-label fw-semibold">Apellidos *</label>
+              <label htmlFor="registro-apellidos" className="form-label fw-semibold">Apellidos *</label>
               <input
                 type="text"
+                id="registro-apellidos"
                 name="apellidos"
-                className="form-control"
+                className={`form-control ${
+                  errors.apellidos ? "is-invalid" : ""
+                }`}
                 placeholder="Pérez González"
                 value={form.apellidos}
                 onChange={handleChange}
-                required
               />
+              {errors.apellidos && (
+                <div className="invalid-feedback d-block">
+                  {errors.apellidos}
+                </div>
+              )}
             </div>
 
+            {/* Correo */}
             <div className="col-md-6">
-              <label className="form-label fw-semibold">
+              <label htmlFor="registro-correo" className="form-label fw-semibold">
                 Correo Electrónico *
               </label>
               <input
                 type="email"
+                id="registro-correo"
                 name="correo"
-                className="form-control"
-                placeholder="juan.perez@gmail.com"
+                className={`form-control ${errors.correo ? "is-invalid" : ""}`}
+                placeholder="usuario@gmail.com"
                 value={form.correo}
                 onChange={handleChange}
-                required
               />
+              {errors.correo && (
+                <div className="invalid-feedback d-block">{errors.correo}</div>
+              )}
+              <small className="text-muted">
+                Solo @gmail.com, @admin.com o @duoc.cl
+              </small>
             </div>
 
+            {/* Fecha nacimiento */}
             <div className="col-md-6">
-              <label className="form-label fw-semibold">
-                Fecha de Nacimiento
+              <label htmlFor="registro-fechaNac" className="form-label fw-semibold">
+                Fecha de Nacimiento *
               </label>
               <input
                 type="date"
+                id="registro-fechaNac"
                 name="fechaNac"
-                className="form-control"
+                className={`form-control ${
+                  errors.fechaNac ? "is-invalid" : ""
+                }`}
+                max={maxFechaNac}
                 value={form.fechaNac}
                 onChange={handleChange}
               />
+              {errors.fechaNac && (
+                <div className="invalid-feedback d-block">
+                  {errors.fechaNac}
+                </div>
+              )}
+              <small className="text-muted">Debes tener al menos 18 años</small>
             </div>
 
+            {/* Región */}
             <div className="col-md-6">
-              <label className="form-label fw-semibold">Región *</label>
+              <label htmlFor="registro-region" className="form-label fw-semibold">Región *</label>
               <select
+                id="registro-region"
                 name="region"
-                className="form-select"
+                className={`form-select ${errors.region ? "is-invalid" : ""}`}
                 value={form.region}
                 onChange={handleChange}
-                required
               >
                 <option value="">-- Seleccione Región --</option>
                 {Object.keys(REGIONES_COMUNAS).map((r) => (
@@ -149,16 +270,20 @@ function Registro() {
                   </option>
                 ))}
               </select>
+              {errors.region && (
+                <div className="invalid-feedback d-block">{errors.region}</div>
+              )}
             </div>
 
+            {/* Comuna */}
             <div className="col-md-6">
-              <label className="form-label fw-semibold">Comuna *</label>
+              <label htmlFor="registro-comuna" className="form-label fw-semibold">Comuna *</label>
               <select
+                id="registro-comuna"
                 name="comuna"
-                className="form-select"
+                className={`form-select ${errors.comuna ? "is-invalid" : ""}`}
                 value={form.comuna}
                 onChange={handleChange}
-                required
                 disabled={!form.region}
               >
                 <option value="">-- Seleccione Comuna --</option>
@@ -168,53 +293,81 @@ function Registro() {
                   </option>
                 ))}
               </select>
+              {errors.comuna && (
+                <div className="invalid-feedback d-block">{errors.comuna}</div>
+              )}
             </div>
 
+            {/* Dirección */}
             <div className="col-12">
-              <label className="form-label fw-semibold">Dirección *</label>
+              <label htmlFor="registro-direccion" className="form-label fw-semibold">Dirección *</label>
               <input
                 type="text"
+                id="registro-direccion"
                 name="direccion"
-                className="form-control"
+                className={`form-control ${
+                  errors.direccion ? "is-invalid" : ""
+                }`}
                 placeholder="Av. José Miguel Carrera 1234"
                 value={form.direccion}
                 onChange={handleChange}
-                required
               />
+              {errors.direccion && (
+                <div className="invalid-feedback d-block">
+                  {errors.direccion}
+                </div>
+              )}
             </div>
 
+            {/* Password */}
             <div className="col-md-6">
-              <label className="form-label fw-semibold">Contraseña *</label>
+              <label htmlFor="registro-password" className="form-label fw-semibold">Contraseña *</label>
               <input
                 type="password"
+                id="registro-password"
                 name="password"
-                className="form-control"
-                placeholder="Mínimo 4 caracteres"
+                className={`form-control ${
+                  errors.password ? "is-invalid" : ""
+                }`}
+                placeholder="Mín. 4 caracteres + 1 mayúscula"
                 value={form.password}
                 onChange={handleChange}
-                required
               />
+              {errors.password && (
+                <div className="invalid-feedback d-block">
+                  {errors.password}
+                </div>
+              )}
             </div>
 
+            {/* Confirm password */}
             <div className="col-md-6">
-              <label className="form-label fw-semibold">
+              <label htmlFor="registro-confirmPassword" className="form-label fw-semibold">
                 Confirmar Contraseña *
               </label>
               <input
                 type="password"
+                id="registro-confirmPassword"
                 name="confirmPassword"
-                className="form-control"
+                className={`form-control ${
+                  errors.confirmPassword ? "is-invalid" : ""
+                }`}
                 placeholder="Repite la contraseña"
                 value={form.confirmPassword}
                 onChange={handleChange}
-                required
               />
+              {errors.confirmPassword && (
+                <div className="invalid-feedback d-block">
+                  {errors.confirmPassword}
+                </div>
+              )}
             </div>
           </div>
 
           <button type="submit" className="btn btn-primary w-100 fw-bold mt-4">
-            Registrar Cuenta
+            {submitting ? "Creando cuenta…" : "Registrar Cuenta"}
           </button>
+          </fieldset>
         </form>
 
         <div className="text-center mt-3 small">
