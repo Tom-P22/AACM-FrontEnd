@@ -6,7 +6,6 @@ Frontend de Administración y Arriendo de Canchas Municipales, desarrollado con 
 
 - Node.js 20.19+ o 22.12+; probado con Node.js 24.
 - npm.
-- Chrome o Microsoft Edge para ejecutar las pruebas de componentes con Karma.
 
 ## Instalar y ejecutar
 
@@ -33,13 +32,16 @@ Los datos se conservan en el navegador. Utilizar siempre la misma dirección y p
 npm run verify
 ```
 
-Ejecuta el análisis de código, 91 pruebas de servicios, 10 pruebas de componentes con Jasmine/Karma y la compilación de producción.
+Ejecuta el análisis de código, las 10 pruebas unitarias de componentes con Vitest y la compilación de producción. Las pruebas usan jsdom y no requieren un navegador instalado.
 
 ```sh
+npm test
+npm run test:unit
 npm run test:components
+npm run test:watch
 npm run test:coverage
 npm run build
 npm run preview
 ```
 
-Karma detecta Chrome o Edge en Windows. Para otra ubicación o sistema operativo, configurar `CHROME_BIN` con la ruta del navegador.
+`npm run test:coverage` genera cobertura V8 en `coverage/`, con informes HTML, LCOV y JSON. `npm run test:watch` vuelve a ejecutar las pruebas al editar archivos.
