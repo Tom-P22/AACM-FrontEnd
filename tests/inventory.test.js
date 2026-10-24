@@ -15,6 +15,8 @@ test("el mínimo de stock suma reservas por horario y descarta canceladas", () =
   reservations.push({ ...reservations[0], status: "cancelada" });
   assert.equal(minimumRequiredStock(reservations, 4, new Date("2030-01-01")), 5);
   assert.equal(availableQuantity({ id: 4, stock: 8 }, "2030-01-02", "10:00", reservations), 3);
+  assert.equal(minimumRequiredStock(reservations, 4, new Date("2030-01-02T10:30:00")), 5);
+  assert.equal(minimumRequiredStock(reservations, 4, new Date("2030-01-02T11:00:00")), 0);
 });
 test("no se reduce stock por debajo de las reservas confirmadas", () => {
   const storage = memoryStorage({ reservations_deportes_v1: JSON.stringify([{ status: "confirmada", date: "2030-01-02", time: "10:00", items: [{ id: 4, quantity: 5 }] }]) });

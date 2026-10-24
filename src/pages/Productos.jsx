@@ -132,7 +132,7 @@ function Productos() {
                     </span>
                   </div>
                   <h5 className="card-title fw-bold fs-6">{p.nombre}</h5>
-                  <p className={`small fw-semibold ${available > 0 ? "text-success" : "text-danger"}`}>{available > 0 ? `${available} ${date && time ? "disponibles en este horario" : "unidades por horario"}` : "Sin disponibilidad"}</p>
+                  <p className={`small fw-semibold ${available > 0 ? "text-success" : "text-danger"}`}>{available > 0 ? `${available} ${date && time ? (available === 1 ? "disponible en este horario" : "disponibles en este horario") : (available === 1 ? "unidad por horario" : "unidades por horario")}` : "Sin disponibilidad"}</p>
                   <p className="card-text text-muted small flex-grow-1">
                     {p.descripcion}
                   </p>
