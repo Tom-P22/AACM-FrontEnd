@@ -3,6 +3,7 @@ import { IMAGE_OPTIONS, INITIAL_NEWS, NEWS_CATEGORIES } from "../data/news.js";
 import { hasPermission } from "./permissions.js";
 import { readJson, writeJson } from "./storage.js";
 import { isStoredImage } from "./images.js";
+import { capacity, minimumRequiredStock } from "./inventory.js";
 
 export const CONTENT_KEY = "content_deportes_v1";
 export const PRODUCT_CATEGORIES = ["Canchas", "Implementos", "Indumentaria"];
@@ -12,6 +13,7 @@ const validImage = (value) => IMAGE_OPTIONS.some(([path]) => path === value) || 
 function checkProduct(product) {
   if (!product || clean(product.nombre).length < 3 || clean(product.nombre).length > 100) throw new Error("El nombre debe tener entre 3 y 100 caracteres.");
   if (!PRODUCT_CATEGORIES.includes(product.categoria)) throw new Error("Selecciona una categoría de producto válida.");
+  if (product.stock !== undefined && (!Number.isSafeInteger(product.stock) || product.stock < 0 || product.stock > (product.categoria === "Canchas" ? 1 : 999))) throw new Error("El stock debe ser un entero de 0 a 999; una cancha admite 0 o 1.");
   if (!Number.isSafeInteger(product.precio) || product.precio <= 0 || product.precio > 10000000) throw new Error("El precio debe ser un entero entre 1 y 10.000.000 de pesos.");
   if (clean(product.descripcion).length < 10 || clean(product.descripcion).length > 1000) throw new Error("La descripción debe tener entre 10 y 1000 caracteres.");
   if (!validImage(product.imagen)) throw new Error("Selecciona una imagen de la galería o sube una foto válida.");
@@ -26,7 +28,7 @@ function checkNews(news) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(news.fecha) || Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== news.fecha) throw new Error("Selecciona una fecha válida para la noticia.");
 }
 
-export function createContentStore(storage) {
+export function createContentStore(storage, { now = () => new Date() } = {}) {
   const load = () => {
     const state = readJson(storage, CONTENT_KEY, { products: INITIAL_PRODUCTS, news: INITIAL_NEWS });
     if (!state || !Array.isArray(state.products) || !Array.isArray(state.news)) throw new Error("El contenido guardado no tiene un formato válido.");
@@ -37,7 +39,7 @@ export function createContentStore(storage) {
     }
     state.products.forEach(checkProduct);
     state.news.forEach(checkNews);
-    return state;
+    return { ...state, products: state.products.map((product) => ({ ...product, stock: capacity(product) })) };
   };
   const authorize = (user, permission) => {
     if (!hasPermission(user, permission)) throw new Error("No tienes permiso para modificar este contenido.");
@@ -51,11 +53,16 @@ export function createContentStore(storage) {
     if (field === "products" && existing && existing.categoria !== data.categoria) throw new Error("La categoría de un producto existente no se puede cambiar; crea otro producto para conservar sus reservas.");
     const record = field === "products" ? {
       nombre: clean(data.nombre), categoria: data.categoria, precio: data.precio, descripcion: clean(data.descripcion), imagen: data.imagen,
+      stock: data.stock ?? existing?.stock ?? capacity(data),
     } : {
       titulo: clean(data.titulo), categoria: data.categoria, texto: clean(data.texto), imagen: data.imagen,
       fecha: data.fecha, badge: NEWS_CATEGORIES[data.categoria],
     };
     validate(record);
+    if (field === "products" && existing && record.stock < capacity(existing)) {
+      const required = minimumRequiredStock(readJson(storage, "reservations_deportes_v1", []), existing.id, now());
+      if (record.stock < required) throw new Error(`Hay ${required} unidades comprometidas en un horario futuro. El stock no puede ser inferior a esa cantidad.`);
+    }
     const name = field === "products" ? "nombre" : "titulo";
     if (records.some((item) => item.id !== existing?.id && item.active !== false && item[name].toLowerCase() === record[name].toLowerCase())) throw new Error("Ya existe un registro con ese nombre o título.");
     const updated = { ...record, id: existing?.id ?? Math.max(0, ...records.map((item) => item.id)) + 1, active: existing?.active !== false };

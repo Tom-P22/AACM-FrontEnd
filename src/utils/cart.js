@@ -1,10 +1,11 @@
 import { INITIAL_PRODUCTS } from "../data/products.js";
 import { readJson, writeJson } from "./storage.js";
+import { capacity } from "./inventory.js";
+export { capacity } from "./inventory.js";
 
 export const CART_KEY = "cart_deportes_v1";
 export const VALID_COUPON = "SANMIGUEL";
 export const emptyCart = () => ({ items: [], coupon: "", date: "", time: "" });
-export const capacity = (product) => product.categoria === "Canchas" ? 1 : 10;
 
 export function catalogProduct(id, products = INITIAL_PRODUCTS) {
   const product = products.find((item) => item.id === id && item.active !== false);
@@ -47,7 +48,7 @@ export function changeQuantity(items, id, quantity, products = INITIAL_PRODUCTS)
 export function reconcileItems(items, products) {
   return items.flatMap((item) => {
     const product = products.find((entry) => entry.id === item.id && entry.active !== false);
-    return product ? [{ ...product, quantity: Math.min(item.quantity, capacity(product)) }] : [];
+    return product && capacity(product) > 0 ? [{ ...product, quantity: Math.min(item.quantity, capacity(product)) }] : [];
   });
 }
 
@@ -61,7 +62,12 @@ export function createCartStore(storage, getProducts = () => INITIAL_PRODUCTS) {
     if (!Array.isArray(saved.items)) throw new Error("El carrito guardado no tiene un formato válido.");
     // Retirar productos archivados sin romper el carrito ni el historial de reservas.
     const available = saved.items.filter((item) => !products.some((product) => product.id === item?.id && product.active === false));
-    return { items: normalizeItems(available, products), coupon: saved.coupon === VALID_COUPON ? VALID_COUPON : "", date: saved.date, time: saved.time };
+    const adjusted = available.map((item) => {
+      const product = catalogProduct(item?.id, products);
+      if (!Number.isInteger(item.quantity) || item.quantity < 1) throw new Error("El carrito contiene una cantidad inválida.");
+      return { ...item, quantity: Math.min(item.quantity, capacity(product)) };
+    }).filter((item) => item.quantity > 0);
+    return { items: normalizeItems(adjusted, products), coupon: saved.coupon === VALID_COUPON ? VALID_COUPON : "", date: saved.date, time: saved.time };
   };
   const save = (next) => {
     writeJson(storage, CART_KEY, { ...next, items: next.items.map(({ id, quantity }) => ({ id, quantity })) });

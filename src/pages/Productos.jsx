@@ -3,11 +3,16 @@ import { useContent } from "../context/ContentContext";
 import { formatCLP } from "../utils/format";
 import { useCart } from "../context/CartContext";
 import { capacity } from "../utils/cart.js";
+import { useReservations } from "../context/ReservationContext";
+import { BOOKING_HOURS, availableQuantity, localDate } from "../utils/reservations.js";
+import { useNow } from "../hooks/useNow";
 
 function Productos() {
   const { products } = useContent();
   const [filtro, setFiltro] = useState("ALL");
-  const { updateQuantity, getItemQuantity } = useCart();
+  const { updateQuantity, getItemQuantity, date, time, setSchedule } = useCart();
+  const { reservations } = useReservations();
+  const now = useNow();
   
   // Estado para controlar el modal y el producto seleccionado
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -89,10 +94,18 @@ function Productos() {
         </select>
       </div>
 
+      <div className="card border-0 shadow-sm p-3 mb-4">
+        <div className="row g-3 align-items-end">
+          <div className="col-md-4"><label htmlFor="catalogo-fecha" className="form-label">Consultar disponibilidad</label><input id="catalogo-fecha" type="date" min={localDate(now)} value={date} className="form-control" onChange={(event) => setSchedule(event.target.value, time)} /></div>
+          <div className="col-md-4"><label htmlFor="catalogo-hora" className="form-label">Hora de inicio</label><select id="catalogo-hora" className="form-select" value={time} onChange={(event) => setSchedule(date, event.target.value)}><option value="">Selecciona una hora</option>{BOOKING_HOURS.map((hour) => <option key={hour} disabled={!date || new Date(`${date}T${hour}:00`) <= now}>{hour}</option>)}</select></div>
+          <div className="col-md-4"><p className="small text-muted mb-1">{date && time ? `Disponibilidad para ${date} a las ${time}.` : "Selecciona fecha y hora para consultar las unidades disponibles."}</p></div>
+        </div>
+      </div>
       <div className="row g-4">
         {productosFiltrados.map((p) => {
           const qty = getItemQuantity(p.id);
           const inCart = qty > 0;
+          const available = date && time ? availableQuantity(p, date, time, reservations) : capacity(p);
 
           return (
             <div className="col-md-6 col-lg-4" key={p.id}>
@@ -117,10 +130,12 @@ function Productos() {
                     </span>
                   </div>
                   <h5 className="card-title fw-bold fs-6">{p.nombre}</h5>
+                  <p className={`small fw-semibold ${available > 0 ? "text-success" : "text-danger"}`}>{available > 0 ? `${available} ${date && time ? "disponibles en este horario" : "unidades por horario"}` : "Sin disponibilidad"}</p>
                   <p className="card-text text-muted small flex-grow-1">
                     {p.descripcion}
                   </p>
                   <button
+                    disabled={!inCart && available === 0}
                     className={`btn fw-bold mt-2 ${
                       inCart ? "btn-success" : "btn-primary"
                     }`}
@@ -138,7 +153,7 @@ function Productos() {
                         inCart ? "fa-check" : "fa-cart-plus"
                       } me-1`}
                     ></i>
-                    {inCart ? `En el carrito (${qty})` : "Agregar a Reservas"}
+                    {inCart ? `En el carrito (${qty})` : available === 0 ? "Sin disponibilidad" : "Agregar a Reservas"}
                   </button>
                 </div>
               </div>
@@ -251,6 +266,7 @@ function Productos() {
                     type="button"
                     className="btn btn-primary fw-bold"
                     onClick={handleSaveModal}
+                    disabled={capacity(selectedProduct) === 0}
                   >
                     {getItemQuantity(selectedProduct.id) > 0
                       ? "Actualizar Reserva"

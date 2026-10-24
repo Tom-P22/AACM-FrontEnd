@@ -12,16 +12,20 @@ export default function ContentManager({ type }) {
   const title = isProduct ? "Productos y canchas" : "Noticias";
   const records = isProduct ? content.products : content.news;
   const blank = () => isProduct
-    ? { nombre: "", categoria: "Implementos", precio: "", descripcion: "", imagen: IMAGE_OPTIONS[0][0] }
+    ? { nombre: "", categoria: "Implementos", precio: "", stock: 10, descripcion: "", imagen: IMAGE_OPTIONS[0][0] }
     : { titulo: "", categoria: "Comunidad", texto: "", imagen: "/img/ConcursoTenis.jpg", fecha: localDate() };
   const [form, setForm] = useState(null);
   const [message, setMessage] = useState(null);
   const [readingImage, setReadingImage] = useState(false);
-  const change = (event) => { setForm((prev) => ({ ...prev, [event.target.name]: event.target.value })); setMessage(null); };
+  const change = (event) => {
+    const { name, value } = event.target;
+    setForm((prev) => ({ ...prev, [name]: value, ...(name === "categoria" && isProduct && !prev.id ? { stock: value === "Canchas" ? 1 : 10 } : {}) }));
+    setMessage(null);
+  };
   const submit = (event) => {
     event.preventDefault();
     if (readingImage) return;
-    const result = isProduct ? content.saveProduct({ ...form, precio: Number(form.precio) }) : content.saveNews(form);
+    const result = isProduct ? content.saveProduct({ ...form, precio: Number(form.precio), stock: Number(form.stock) }) : content.saveNews(form);
     setMessage({ success: result.success, text: result.success ? "Cambios guardados correctamente." : result.message });
     if (result.success) setForm(null);
   };
@@ -52,7 +56,8 @@ export default function ContentManager({ type }) {
             min={isProduct ? 1 : undefined} max={isProduct ? 10000000 : undefined} step={isProduct ? 1 : undefined}
             value={isProduct ? form.precio : form.fecha} onChange={change} required />
         </div>
-        <div className="col-md-8"><label htmlFor="contenido-imagen" className="form-label">Imagen *</label>
+        {isProduct && <div className="col-md-4"><label htmlFor="contenido-stock" className="form-label">Stock por horario *</label><input id="contenido-stock" name="stock" type="number" min="0" max={form.categoria === "Canchas" ? 1 : 999} step="1" className="form-control" value={form.stock} onChange={change} required /></div>}
+        <div className={isProduct ? "col-md-4" : "col-md-8"}><label htmlFor="contenido-imagen" className="form-label">Imagen *</label>
           <select id="contenido-imagen" name="imagen" className="form-select" value={form.imagen} onChange={change}>
             {!IMAGE_OPTIONS.some(([path]) => path === form.imagen) && <option value={form.imagen}>Foto subida</option>}
             {IMAGE_OPTIONS.map(([path, label]) => <option key={path} value={path}>{label}</option>)}
@@ -69,10 +74,11 @@ export default function ContentManager({ type }) {
     </form>}
     <div className="card shadow-sm border-0 overflow-hidden"><div className="table-responsive">
       <table className="table align-middle mb-0 admin-table">
-        <thead className="table-light"><tr><th scope="col">{isProduct ? "Producto" : "Noticia"}</th><th scope="col">Categoría</th><th scope="col">{isProduct ? "Precio" : "Fecha"}</th><th scope="col">Estado</th><th scope="col">Acciones</th></tr></thead>
+        <thead className="table-light"><tr><th scope="col">{isProduct ? "Producto" : "Noticia"}</th><th scope="col">Categoría</th><th scope="col">{isProduct ? "Precio" : "Fecha"}</th>{isProduct && <th scope="col">Stock</th>}<th scope="col">Estado</th><th scope="col">Acciones</th></tr></thead>
         <tbody>{records.map((record) => <tr key={record.id}>
           <td><div className="d-flex align-items-center gap-3"><img src={record.imagen} alt="" className="admin-thumbnail rounded" /><span className="fw-semibold">{isProduct ? record.nombre : record.titulo}</span></div></td>
           <td>{record.categoria}</td><td className="text-nowrap">{isProduct ? formatCLP(record.precio) : record.fecha}</td>
+          {isProduct && <td>{record.stock}</td>}
           <td><span className={`badge ${record.active === false ? "bg-secondary-subtle text-secondary" : "bg-success-subtle text-success"}`}>{record.active === false ? "Archivado" : "Publicado"}</span></td>
           <td><div className="d-flex gap-2"><button className="btn btn-sm btn-outline-primary" onClick={() => { setForm({ ...record }); setMessage(null); }}>Editar</button>
             <button className="btn btn-sm btn-outline-secondary" onClick={() => toggle(record.id)}>{record.active === false ? "Restaurar" : "Archivar"}</button></div></td>

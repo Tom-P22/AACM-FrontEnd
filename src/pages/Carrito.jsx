@@ -57,7 +57,7 @@ export default function Carrito() {
             {items.map((item) => <CartItem key={item.id} item={item} onRemove={removeFromCart} onQuantityChange={updateQuantity} />)}
             <div className="card shadow-sm p-4 mb-3">
               <h2 className="h5 fw-bold">Fecha y horario</h2>
-              <p className="text-muted small">Todos los artículos se reservan para el mismo bloque de 60 minutos. Hay una cancha de cada tipo y 10 unidades de cada implemento o set por horario.</p>
+              <p className="text-muted small">Todos los artículos se reservan para el mismo bloque de 60 minutos. La disponibilidad depende del stock del catálogo y de las reservas existentes.</p>
               <div className="row g-3">
                 <div className="col-sm-6">
                   <label htmlFor="reserva-fecha" className="form-label">Fecha *</label>
