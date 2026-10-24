@@ -103,3 +103,21 @@ test("contenido dañado y fallos de escritura no se sobrescriben ni anuncian éx
   full.setItem = () => { throw new Error("quota"); };
   assert.throws(() => createContentStore(full).saveNews(editor, news), /guardar/);
 });
+
+test("restaurar productos y noticias no duplica nombres publicados ni pierde cambios", () => {
+  for (const type of ["products", "news"]) {
+    const storage = memoryStorage(); const store = createContentStore(storage);
+    const save = type === "products" ? store.saveProduct : store.saveNews;
+    const toggle = type === "products" ? store.toggleProduct : store.toggleNews;
+    const data = type === "products" ? product : news;
+    const first = save(admin, data)[type].at(-1);
+    toggle(admin, first.id);
+    save(admin, data);
+    const previous = storage.getItem(CONTENT_KEY);
+    assert.throws(() => toggle(admin, first.id), /antes de restaurar/);
+    assert.equal(storage.getItem(CONTENT_KEY), previous);
+    const name = type === "products" ? "nombre" : "titulo";
+    save(admin, { ...first, [name]: `${data[name]} anterior` });
+    assert.equal(toggle(admin, first.id)[type].find((record) => record.id === first.id).active, true);
+  }
+});

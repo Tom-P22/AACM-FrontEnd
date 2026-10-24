@@ -73,7 +73,12 @@ export function createContentStore(storage, { now = () => new Date() } = {}) {
   const toggle = (user, field, id, permission) => {
     authorize(user, permission);
     const state = load();
-    if (!state[field].some((item) => item.id === id)) throw new Error("El registro no existe.");
+    const record = state[field].find((item) => item.id === id);
+    if (!record) throw new Error("El registro no existe.");
+    const name = field === "products" ? "nombre" : "titulo";
+    if (record.active === false && state[field].some((item) => item.id !== id && item.active !== false && item[name].toLowerCase() === record[name].toLowerCase())) {
+      throw new Error("Ya existe un registro publicado con ese nombre o título. Cambia el nombre antes de restaurar.");
+    }
     const next = { ...state, [field]: state[field].map((item) => item.id === id ? { ...item, active: item.active === false } : item) };
     writeJson(storage, CONTENT_KEY, next);
     return next;
