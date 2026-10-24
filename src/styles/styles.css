@@ -100,3 +100,5 @@
         padding: 0.65rem 0.8rem;
     }
 }
+.app-dialog { width: min(92vw, 800px); max-height: 90vh; border: 0; border-radius: 12px; padding: 0; color: var(--bs-body-color); box-shadow: 0 1rem 3rem rgba(0,0,0,.2); }
+.app-dialog::backdrop { background: rgba(0,0,0,.5); }

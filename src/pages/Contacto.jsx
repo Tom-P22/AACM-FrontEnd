@@ -1,14 +1,17 @@
 import { useState } from "react";
 import { useReservations } from "../context/ReservationContext";
+import ImageUpload from "../components/ImageUpload";
 
 function Contacto() {
   const [form, setForm] = useState({
     nombre: "",
     correo: "",
     comentario: "",
+    attachment: "",
   });
   const [result, setResult] = useState(null);
   const { saveMessage } = useReservations();
+  const [readingImage, setReadingImage] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -17,9 +20,10 @@ function Contacto() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (readingImage) return;
     const response = saveMessage(form);
     setResult(response);
-    if (response.success) setForm({ nombre: "", correo: "", comentario: "" });
+    if (response.success) setForm({ nombre: "", correo: "", comentario: "", attachment: "" });
   };
 
   return (
@@ -32,7 +36,7 @@ function Contacto() {
 
         {result && (
           <div className={`alert ${result.success ? "alert-success" : "alert-danger"}`} role="alert">
-            {result.success ? "Consulta guardada en este navegador y disponible en el panel de administración. No se envió por correo." : result.message}
+            {result.success ? `Consulta registrada correctamente. Código: ${result.item.id.slice(0, 8)}.` : result.message}
           </div>
         )}
 
@@ -88,8 +92,9 @@ function Contacto() {
             ></textarea>
           </div>
 
-          <button type="submit" className="btn btn-primary w-100 fw-bold">
-            Guardar consulta local
+          <div className="mb-4"><ImageUpload label="Adjuntar foto (opcional)" value={form.attachment} onChange={(attachment) => { setForm((prev) => ({ ...prev, attachment })); setResult(null); }} onBusyChange={setReadingImage} /></div>
+          <button type="submit" className="btn btn-primary w-100 fw-bold" disabled={readingImage}>
+            {readingImage ? "Preparando foto…" : "Enviar consulta"}
           </button>
         </form>
       </div>

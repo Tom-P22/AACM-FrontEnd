@@ -2,6 +2,7 @@ import { calculateTotals, capacity, normalizeItems, VALID_COUPON } from "./cart.
 import { readJson, writeJson } from "./storage.js";
 import { validarNombre } from "./validations.js";
 import { INITIAL_PRODUCTS } from "../data/products.js";
+import { isStoredImage } from "./images.js";
 
 export const RESERVATIONS_KEY = "reservations_deportes_v1";
 export const MESSAGES_KEY = "messages_deportes_v1";
@@ -43,7 +44,7 @@ export function createReservationStore(storage, { now = () => new Date(), uuid =
   const listMessages = () => {
     const saved = readJson(storage, MESSAGES_KEY, []);
     if (!Array.isArray(saved) || saved.some((item) => !item || typeof item.id !== "string" ||
-      typeof item.nombre !== "string" || typeof item.correo !== "string" || typeof item.comentario !== "string" || typeof item.createdAt !== "string")) {
+      typeof item.nombre !== "string" || typeof item.correo !== "string" || typeof item.comentario !== "string" || typeof item.createdAt !== "string" || (item.attachment && !isStoredImage(item.attachment)))) {
       throw new Error("Las consultas guardadas tienen un formato inválido.");
     }
     return saved;
@@ -89,7 +90,9 @@ export function createReservationStore(storage, { now = () => new Date(), uuid =
       if (!validarNombre(nombre) || nombre.length > 100) throw new Error("Escribe un nombre válido de hasta 100 caracteres.");
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo) || correo.length > 254) throw new Error("Escribe un correo válido.");
       if (!comentario || comentario.length > 2000) throw new Error("Escribe una consulta de entre 1 y 2000 caracteres.");
-      const message = { id: uuid(), nombre, correo, comentario, createdAt: now().toISOString(), status: "guardada_localmente" };
+      const attachment = data.attachment || "";
+      if (attachment && !isStoredImage(attachment)) throw new Error("La foto adjunta no tiene un formato o tamaño válido.");
+      const message = { id: uuid(), nombre, correo, comentario, attachment, createdAt: now().toISOString(), status: "guardada_localmente" };
       writeJson(storage, MESSAGES_KEY, [...listMessages(), message]);
       return message;
     },
