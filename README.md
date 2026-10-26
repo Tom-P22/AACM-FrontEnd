@@ -4,7 +4,7 @@ Frontend de Administración y Arriendo de Canchas Municipales, desarrollado con 
 
 ## Requisitos
 
-- Node.js 20.19+ o 22.12+; probado con Node.js 24.
+- Node.js 22.22.2+ (rama 22), 24.15+ (rama 24) o 26+; probado con Node.js 24.22.
 - npm.
 
 ## Instalar y ejecutar
@@ -32,7 +32,7 @@ Los datos se conservan en el navegador. Utilizar siempre la misma dirección y p
 npm run verify
 ```
 
-Ejecuta el análisis de código, las 10 pruebas unitarias de componentes con Vitest y la compilación de producción. Las pruebas usan jsdom y no requieren un navegador instalado.
+Ejecuta el análisis de código, las 10 pruebas unitarias de componentes con Vitest y la compilación de producción. Las pruebas usan React Testing Library y jsdom para comprobar renderizado, propiedades, estado, eventos y permisos; no requieren un navegador instalado ni conectarse al backend.
 
 ```sh
 npm test
@@ -44,4 +44,4 @@ npm run build
 npm run preview
 ```
 
-`npm run test:coverage` genera cobertura V8 en `coverage/`, con informes HTML, LCOV y JSON. `npm run test:watch` vuelve a ejecutar las pruebas al editar archivos.
+`npm run test:coverage` genera cobertura V8 en `coverage/`, con informes HTML, LCOV y JSON. La cobertura es parcial y no certifica toda la aplicación. `npm run test:watch` vuelve a ejecutar las pruebas al editar archivos.
