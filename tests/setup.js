@@ -1,15 +1,12 @@
-globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+import "@testing-library/jest-dom/vitest";
+import { cleanup } from "@testing-library/react";
+import { afterEach } from "vitest";
 
-// jsdom no implementa los métodos nativos de los diálogos modales.
-if (!HTMLDialogElement.prototype.showModal) {
-  HTMLDialogElement.prototype.showModal = function () {
-    this.open = true;
-  };
-}
+// jsdom no reproduce la capa modal, el foco ni el diseño de un navegador real.
+// Solo representamos el estado abierto/cerrado para probar el flujo de React.
+Object.defineProperties(HTMLDialogElement.prototype, {
+  showModal: { configurable: true, value() { this.open = true; } },
+  close: { configurable: true, value() { this.open = false; } },
+});
 
-if (!HTMLDialogElement.prototype.close) {
-  HTMLDialogElement.prototype.close = function () {
-    this.open = false;
-    this.dispatchEvent(new Event("close"));
-  };
-}
+afterEach(() => cleanup());
