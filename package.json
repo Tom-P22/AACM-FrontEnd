@@ -13,7 +13,8 @@
     "verify": "npm run lint && npm test && npm run build",
     "preview": "vite preview",
     "test:unit": "vitest run",
-    "test:components": "vitest run tests/components",
+    "test:components": "vitest run --project componentes",
+    "test:services": "vitest run --project servicios",
     "test:watch": "vitest"
   },
   "dependencies": {
