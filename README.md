@@ -32,11 +32,17 @@ Los datos se conservan en el navegador. Utilizar siempre la misma dirección y p
 npm run verify
 ```
 
-Ejecuta el análisis de código, las 10 pruebas unitarias de componentes con Vitest y la compilación de producción. Las pruebas usan React Testing Library y jsdom para comprobar renderizado, propiedades, estado, eventos y permisos; no requieren un navegador instalado ni conectarse al backend.
+Ejecuta el análisis de código, las 101 pruebas con Vitest y la compilación de producción:
+
+- 91 pruebas de servicios y reglas en entorno Node: usuarios, validaciones, permisos, contenido, carrito, stock, reservas, consultas y comprobantes.
+- 10 pruebas de componentes con React Testing Library y jsdom: renderizado, propiedades, estado, eventos y permisos.
+
+Ambos grupos se configuran en `vitest.config.js`. Las pruebas de servicios conservan sus aserciones originales de `node:assert/strict`, pero se registran y ejecutan con Vitest. No requieren navegador instalado ni conectarse al backend; los datos de prueba se guardan en memoria.
 
 ```sh
 npm test
 npm run test:unit
+npm run test:services
 npm run test:components
 npm run test:watch
 npm run test:coverage
@@ -44,4 +50,6 @@ npm run build
 npm run preview
 ```
 
-`npm run test:coverage` genera cobertura V8 en `coverage/`, con informes HTML, LCOV y JSON. La cobertura es parcial y no certifica toda la aplicación. `npm run test:watch` vuelve a ejecutar las pruebas al editar archivos.
+`npm test` y `npm run test:unit` ejecutan los 101 casos. `npm run test:services` ejecuta solo los 91 de servicios y `npm run test:components` los diez de componentes.
+
+`npm run test:coverage` mide ambos grupos con V8 y genera informes HTML, LCOV y JSON en `coverage/`. La cobertura es parcial y no certifica toda la aplicación. `npm run test:watch` vuelve a ejecutar las pruebas al editar archivos.
